@@ -31,7 +31,9 @@ There is one extra tarball:
 
     snort_extra-1.0.0-a1-130.tar.gz
 
-If you cloned from github, you have already have everything.
+You can also get the code with:
+
+    git clone git://github.com/snortadmin/snort3_extra.git
 
 BUILD EXTRAS
 
@@ -41,7 +43,7 @@ Follow these steps:
 
 * If you are using a github clone:
 
-    cd extra/
+    cd snort3_extra/
 
 * Otherwise do this:
 
