@@ -35,7 +35,7 @@
 // As a module (dynamically loaded)  - see CMakeLists.txt
 
 #include <iostream>
-
+#include <sstream>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -74,7 +74,9 @@ public:
 
     int tinit()
     {
-        cerr << WhereMacro << ": per worker thread initialization." << endl;
+        stringstream msg;
+        msg << WhereMacro << ": per worker thread initialization." << endl;
+        cerr << msg.str();
         return 0;
     }
 
@@ -92,7 +94,9 @@ public:
 
     int tfini()
     {
-        cerr << WhereMacro << ": per worker-thread clean-up." << endl;
+        stringstream msg;
+        msg << WhereMacro << ": per worker-thread clean-up." << endl;
+        cerr << msg.str();
         return 0;
     }
 
@@ -110,8 +114,10 @@ public:
         vector<AppId>& proto_list,
         ThirdPartyAppIDAttributeData& attribute_data)
     {
-        cerr << WhereMacro
+        stringstream msg;
+        msg  << WhereMacro
              << ": third party packet parsing and appid processing." << endl;
+        cerr << msg.str();
         return 1;
     }
 
@@ -144,4 +150,3 @@ extern "C"
         return new ThirdPartyAppIDSessionImpl;
     }
 }
-
