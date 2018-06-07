@@ -45,8 +45,6 @@
 #include "network_inspectors/appid/tp_appid_module_api.h"
 #include "network_inspectors/appid/tp_appid_session_api.h"
 
-#define THIRD_PARTY_APPID_MODULE_NAME "NAVL"
-
 #define WhereMacro __FILE__ << ": " << __FUNCTION__ << ": " << __LINE__
 
 using namespace std;
