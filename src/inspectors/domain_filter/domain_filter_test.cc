@@ -16,6 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //--------------------------------------------------------------------------
 
+// domain_filter_test.cc author Russ Combs <rucombs@cisco.com>
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

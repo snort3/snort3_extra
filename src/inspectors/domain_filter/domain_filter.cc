@@ -16,6 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //--------------------------------------------------------------------------
 
+// domain_filter.cc author Russ Combs <rucombs@cisco.com>
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -25,6 +27,7 @@
 
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "detection/detection_engine.h"
@@ -43,6 +46,7 @@ static const char* s_name = "domain_filter";
 static const char* s_help = "alert on configured HTTP domains";
 
 using DomainList = std::vector<std::string>;
+using DomainSet = std::unordered_set<std::string>;
 using namespace snort;
 
 //--------------------------------------------------------------------------
@@ -51,11 +55,11 @@ using namespace snort;
 
 static const Parameter s_params[] =
 {
-    { "hosts", Parameter::PT_STRING, nullptr, nullptr,
-      "list of domains identifying hosts to be filtered" },
-
     { "file", Parameter::PT_STRING, nullptr, nullptr,
       "file with list of domains identifying hosts to be filtered" },
+
+    { "hosts", Parameter::PT_STRING, nullptr, nullptr,
+      "list of domains identifying hosts to be filtered" },
 
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
@@ -98,7 +102,6 @@ public:
     { return hosts; }
 
     bool set(const char*, Value&, SnortConfig*) override;
-    bool end(const char*, int, SnortConfig*) override;
 
     const PegInfo* get_pegs() const override
     { return s_pegs; }
@@ -122,7 +125,7 @@ public:
     DomainList hosts;
 };
 
-bool DomainFilterModule::set(const char*, Value& v, SnortConfig*)
+bool DomainFilterModule::set(const char* fqn, Value& v, SnortConfig* sc)
 {
     if ( v.is("file") )
     {
@@ -138,7 +141,7 @@ bool DomainFilterModule::set(const char*, Value& v, SnortConfig*)
         while ( df >> tok )
             hosts.push_back(tok);
     }
-    else
+    else if ( v.is("hosts") )
     {
         std::string tok;
         v.set_first_token();
@@ -146,13 +149,9 @@ bool DomainFilterModule::set(const char*, Value& v, SnortConfig*)
         while ( v.get_next_token(tok) )
             hosts.push_back(tok);
     }
+    else
+        return Module::set(fqn, v, sc);
 
-    return true;
-}
-
-bool DomainFilterModule::end(const char*, int, SnortConfig*)
-{
-    sort(hosts.begin(), hosts.end());
     return true;
 }
 
@@ -163,12 +162,12 @@ bool DomainFilterModule::end(const char*, int, SnortConfig*)
 class HttpHandler : public DataHandler
 {
 public:
-    HttpHandler(DomainList& sv) : hosts(sv) { }
+    HttpHandler(DomainSet& sv) : hosts(sv) { }
 
     void handle(DataEvent& e, Flow*) override;
 
 private:
-    DomainList& hosts;
+    DomainSet& hosts;
 };
 
 void HttpHandler::handle(DataEvent& de, Flow*)
@@ -185,7 +184,7 @@ void HttpHandler::handle(DataEvent& de, Flow*)
     std::string h(s, len);
     transform(h.begin(), h.end(), h.begin(), ::tolower);
 
-    DomainList::iterator it = find(hosts.begin(), hosts.end(), h);
+    DomainSet::const_iterator it = hosts.find(h);
 
     if ( it != hosts.end() )
     {
@@ -206,12 +205,13 @@ public:
     void eval(Packet*) { }
 
 private:
-    DomainList hosts;
+    DomainSet hosts;
 };
 
 DomainFilter::DomainFilter(DomainList& sv)
 {
-    hosts = std::move(sv);
+    hosts.insert(sv.begin(), sv.end());
+    sv.clear();
 
     if ( !hosts.empty() )
         DataBus::subscribe(HTTP_REQUEST_HEADER_EVENT_KEY, new HttpHandler(hosts));
