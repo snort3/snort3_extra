@@ -41,9 +41,9 @@
 #endif
 
 #include "main/snort_types.h"
-
 #include "network_inspectors/appid/tp_appid_module_api.h"
 #include "network_inspectors/appid/tp_appid_session_api.h"
+#include "utils/stats.h"
 
 #define WhereMacro __FILE__ << ": " << __FUNCTION__ << ": " << __LINE__
 
@@ -114,7 +114,8 @@ public:
     {
         stringstream msg;
         msg  << WhereMacro
-             << ": third party packet parsing and appid processing." << endl;
+             << ": third party packet parsing and appid processing."
+             << " Packet: " << snort::get_packet_number() << endl;
         cerr << msg.str();
         return 1;
     }
