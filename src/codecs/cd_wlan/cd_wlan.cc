@@ -18,7 +18,7 @@
 //--------------------------------------------------------------------------
 // cd_wlan.cc author Josh Rosenbaum <jrosenba@cisco.com>
 
-#include <sfbpf_dlt.h>
+#include <daq_dlt.h>
 
 #include "codecs/codec_module.h"
 #include "framework/codec.h"

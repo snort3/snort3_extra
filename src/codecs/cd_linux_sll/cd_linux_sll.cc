@@ -17,7 +17,7 @@
 //--------------------------------------------------------------------------
 // cd_linux_sll.cc author Josh Rosenbaum <jrosenba@cisco.com>
 
-#include <sfbpf_dlt.h>
+#include <daq_dlt.h>
 
 #include "framework/codec.h"
 #include "protocols/linux_sll.h"

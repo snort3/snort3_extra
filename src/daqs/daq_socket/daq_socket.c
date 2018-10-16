@@ -32,7 +32,7 @@
 #include <sys/unistd.h>
 
 #include <daq_api.h>
-#include <sfbpf_dlt.h>
+#include <daq_dlt.h>
 
 #include <daqs/daq_user.h>
 

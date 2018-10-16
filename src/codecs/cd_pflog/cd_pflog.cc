@@ -18,7 +18,7 @@
 //--------------------------------------------------------------------------
 
 #include <net/if.h>
-#include <sfbpf_dlt.h>
+#include <daq_dlt.h>
 
 #include "framework/codec.h"
 
