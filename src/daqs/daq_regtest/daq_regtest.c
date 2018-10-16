@@ -16,114 +16,78 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //--------------------------------------------------------------------------
 */
-/* daq_regtest.c author Bhagya Tholpady <bbantwal@cisco.com> */
+/* daq_regtest.c author Bhagya Tholpady <bbantwal@cisco.com>, Michael Altizer <mialtize@cisco.com> */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <daq.h>
-#include <daq_api.h>
+#include <daq_module_api.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define DAQ_MOD_VERSION 0
+#define DAQ_MOD_VERSION 1
 #define DAQ_NAME "regtest"
-#define DAQ_TYPE (DAQ_TYPE_FILE_CAPABLE | DAQ_TYPE_INTF_CAPABLE | \
-                          DAQ_TYPE_INLINE_CAPABLE | DAQ_TYPE_MULTI_INSTANCE)
 #define REGTEST_DEBUG_FILE "daq_regtest_debug"
 #define REGTEST_CONFIG_FILE "daq_regtest.conf"
+
+#define SET_ERROR(modinst, ...)    daq_base_api.set_errbuf(modinst, __VA_ARGS__)
+
+#define CHECK_SUBAPI(ctxt, fname) \
+    (ctxt->subapi.fname.func != NULL)
+
+#define CALL_SUBAPI_NOARGS(ctxt, fname) \
+    ctxt->subapi.fname.func(ctxt->subapi.fname.context)
+
+#define CALL_SUBAPI(ctxt, fname, ...) \
+    ctxt->subapi.fname.func(ctxt->subapi.fname.context, __VA_ARGS__)
 
 typedef struct
 {
     char* buf;
     int config_num;
-}DAQRegTestConfig;
+} RegTestConfig;
 
 typedef struct
 {
-    DAQRegTestConfig* daq_regtest_cfg;
+    DAQ_ModuleInstance_h modinst;
+    DAQ_InstanceAPI_t subapi;
+
+    /* Configuration */
+    RegTestConfig* cfg;
+    unsigned skip;
+    unsigned trace;
+    uint32_t caps_cfg;
+
+    /* State */
     FILE* debug_fh;
     int daq_config_reads;
-    const DAQ_Module_t* module;
-    void *handle;
-    int skip;
-    int trace;
-    uint32_t caps_cfg;
-    DAQ_PktHdr_t retry_hdr;
-    uint8_t* retry_data;
-    uint32_t retry_delay;         // microsecond time shift for retry and subsequent packets
-    uint32_t retry_delay_counter; // # of retry happened so far for time shift calculations
-    unsigned packets_before_retry;
-    unsigned retry_packet_countdown;
-    void* user;
-    DAQ_Analysis_Func_t wrapped_packet_callback;
-}DAQRegTestContext;
+} RegTestContext;
 
-static const DAQ_Verdict verdict_translation_table[MAX_DAQ_VERDICT] = {
-    DAQ_VERDICT_PASS,       /* DAQ_VERDICT_PASS */
-    DAQ_VERDICT_BLOCK,      /* DAQ_VERDICT_BLOCK */
-    DAQ_VERDICT_PASS,       /* DAQ_VERDICT_REPLACE */
-    DAQ_VERDICT_PASS,       /* DAQ_VERDICT_WHITELIST */
-    DAQ_VERDICT_BLOCK,      /* DAQ_VERDICT_BLACKLIST */
-    DAQ_VERDICT_PASS,       /* DAQ_VERDICT_IGNORE */
-    DAQ_VERDICT_BLOCK       /* DAQ_VERDICT_RETRY */
+// --daq-var skip=10 --daq-var trace=5 would trace packets 11 through 15 only
+static DAQ_VariableDesc_t regtest_variable_descriptions[] =
+{
+    { "skip", "Number of packets to skip before starting to honor the trace option", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
+    { "trace", "Number of packets to set the trace enabled flag on", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
+    { "caps", "DAQ module capabilities to report (in hex)", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
 };
 
-// packet tracer configuration from command line daq-var skip and trace
-// --daq-var skip=10 --daq-var trace=5 would trace packets 11 through 15 only
-static void daq_regtest_get_vars(DAQRegTestContext* context, const DAQ_Config_t* cfg)
-{
-    DAQ_Dict* entry;
+DAQ_BaseAPI_t daq_base_api;
 
-    context->skip = 0;
-    context->trace = 0;
-    context->retry_delay = 0;
-    context->retry_delay_counter = 0;
-    context->packets_before_retry = 0;
-    context->caps_cfg = 0;
-    for ( entry = cfg->values; entry; entry = entry->next)
-    {
-        if ( !strcmp(entry->key, "skip") )
-        {
-            context->skip = atoi(entry->value);
-        }
-        else if ( !strcmp(entry->key, "trace") )
-        {
-            context->trace = atoi(entry->value);
-        }
-        else if ( !strcmp(entry->key, "retry_delay") )
-        {
-            context->retry_delay = atoi(entry->value);
-        }
-        else if ( !strcmp(entry->key, "packets_before_retry") )
-        {
-            context->packets_before_retry = atoi(entry->value);
-        }
-        else if ( !strcmp(entry->key, "caps") )
-        {
-            // DAQ capabilities in hex, e.g. caps=0x00004000
-            context->caps_cfg = strtol(entry->value, NULL, 0);
-        }
-    }
-}
+//-------------------------------------------------------------------------
 
-static int daq_regtest_parse_config(DAQRegTestContext *context, DAQRegTestConfig** new_config, char* errBuf, size_t errMax)
+static int regtest_daq_parse_config(RegTestContext *rtc, RegTestConfig** new_config)
 {
     long size = 0;
     FILE* fh = fopen(REGTEST_CONFIG_FILE, "r");
 
     if (!fh)
     {
-        if ( errBuf )
-            snprintf(errBuf, errMax, "%s: failed to open the daq_regtest config file", DAQ_NAME);
+        fprintf(stderr, "%s: failed to open the daq_regtest config file", DAQ_NAME);
         return DAQ_ERROR;
     }
-    DAQRegTestConfig* config = calloc(1, sizeof(DAQRegTestConfig));
-    if ( !config )
+    RegTestConfig* config = calloc(1, sizeof(RegTestConfig));
+    if (!config)
     {
-        if ( errBuf )
-            snprintf(errBuf, errMax, "%s: failed to allocate daq_regtest config", DAQ_NAME);
+        fprintf(stderr, "%s: failed to allocate daq_regtest config", DAQ_NAME);
         fclose(fh);
         return DAQ_ERROR_NOMEM;
     }
@@ -131,411 +95,260 @@ static int daq_regtest_parse_config(DAQRegTestContext *context, DAQRegTestConfig
     fseek(fh, 0, SEEK_END);
     size = ftell(fh);
     config->buf = (char*) calloc(size, sizeof(char));
-    if ( !config->buf )
+    if (!config->buf)
     {
-        if ( errBuf )
-            snprintf(errBuf, errMax, "%s: failed to allocate daq_regtest buffer", DAQ_NAME);
+        fprintf(stderr, "%s: failed to allocate daq_regtest buffer", DAQ_NAME);
         free(config);
         fclose(fh);
         return DAQ_ERROR_NOMEM;
     }
     rewind(fh);
-    if ( fgets(config->buf, size, fh) == NULL )
+    if (fgets(config->buf, size, fh) == NULL)
     {
-        if ( errBuf )
-            snprintf(errBuf, errMax, "%s: failed to read daq_regtest config file", DAQ_NAME);
+        fprintf(stderr, "%s: failed to read daq_regtest config file", DAQ_NAME);
         free(config);
         fclose(fh);
         return DAQ_ERROR;
     }
-    context->daq_config_reads++;
-    config->config_num = context->daq_config_reads;
+    rtc->daq_config_reads++;
+    config->config_num = rtc->daq_config_reads;
     *new_config = config;
     fclose(fh);
 
     return DAQ_SUCCESS;
 }
 
-static int daq_regtest_init_context(DAQRegTestContext* context, char* errBuf, size_t errMax)
+static void regtest_daq_debug(RegTestContext* rtc, char* msg)
 {
-    context->debug_fh = NULL;
-    return daq_regtest_parse_config(context, &(context->daq_regtest_cfg), errBuf, errMax);
-}
-static void daq_regtest_cleanup(DAQRegTestContext* context)
-{
-    context->module = NULL;
-    context->handle = NULL;
-
-    if ( context->debug_fh )
-        fclose(context->debug_fh);
-
-    if ( context->daq_regtest_cfg )
+    if (rtc->debug_fh)
     {
-        if ( context->daq_regtest_cfg->buf )
-            free(context->daq_regtest_cfg->buf);
-        free(context->daq_regtest_cfg);
-    }
-
-    free(context);
-}
-
-//-------------------------------------------------------------------------
-// daq
-//-------------------------------------------------------------------------
-
-static void daq_regtest_shutdown (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-
-    if (context->debug_fh)
-        fprintf (context->debug_fh, "daq_regtest shutdown\n");
-
-    context->module->shutdown(context->handle);
-    daq_regtest_cleanup(context);
-}
-
-static void daq_regtest_debug(DAQRegTestContext* context, char* msg)
-{
-    if (context->debug_fh)
-    {
-        fprintf (context->debug_fh, "%s\n", msg);
-        fprintf (context->debug_fh, "daq_regtest config : \n\tbuf = %s \n\tconfig_num = %d \n", 
-                context->daq_regtest_cfg->buf, context->daq_regtest_cfg->config_num);
-        fflush(context->debug_fh);
+        fprintf (rtc->debug_fh, "%s\n", msg);
+        fprintf (rtc->debug_fh, "daq_regtest config : \n\tbuf = %s \n\tconfig_num = %d \n", 
+                rtc->cfg->buf, rtc->cfg->config_num);
+        fflush(rtc->debug_fh);
     }
 }
+
 
 //-------------------------------------------------------------------------
 
-static int daq_regtest_initialize (
-    const DAQ_Config_t* cfg, void** handle, char* errBuf, size_t errMax)
+static int regtest_daq_module_load(const DAQ_BaseAPI_t *base_api)
 {
-    DAQRegTestContext* context;
-    int rval = DAQ_SUCCESS;
-
-    context = calloc(1, sizeof(*context));
-    if ( !context )
-    {
-        snprintf(errBuf, errMax, "%s: Couldn't allocate memory for the new daq_regtest context!", DAQ_NAME);
-        return DAQ_ERROR_NOMEM;
-    }
-
-    rval = daq_regtest_init_context(context, errBuf, errMax);
-
-    if ( rval != DAQ_SUCCESS )
-    {
-        free(context);
-        return rval;
-    }
-
-    daq_regtest_get_vars(context, cfg);
-
-    context->module = daq_find_module("dump");
-
-    if (!context->module)
-    {
-        snprintf(errBuf, errMax, "%s: Can't find dump daq required by daq_regtest module!", DAQ_NAME);
-        daq_regtest_cleanup(context);
+    if (base_api->api_version != DAQ_BASE_API_VERSION || base_api->api_size != sizeof(DAQ_BaseAPI_t))
         return DAQ_ERROR;
-    }
 
-    context->debug_fh = fopen(REGTEST_DEBUG_FILE, "w");
-
-    rval = context->module->initialize(cfg, &context->handle, errBuf, errMax);
-    if ( rval != DAQ_SUCCESS )
-    {
-        daq_regtest_cleanup(context);
-        return rval;
-    }
-    daq_regtest_debug(context, "daq_regtest initialized");
-    *handle = context;
-    return rval;
-}
-
-//-------------------------------------------------------------------------
-
-static int daq_regtest_start (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->start(context->handle);
-}
-
-static int daq_regtest_stop (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->stop(context->handle);
-}
-
-//-------------------------------------------------------------------------
-
-static int daq_regtest_inject (
-    void* handle, const DAQ_PktHdr_t* hdr, const uint8_t* buf, uint32_t len,
-    int reverse)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->inject(context->handle, hdr, buf, len, reverse);
-}
-
-static void update_hdr_after_retry(DAQ_PktHdr_t* hdr, uint32_t counter, uint32_t delay)
-{
-    if (!counter || !delay)
-        return;
-
-    struct timeval* ts = (struct timeval*) &hdr->ts;
-    uint64_t usec = counter * delay + ts->tv_usec;
-
-    while (usec >= 1000000)
-    {
-        usec -= 1000000;
-        ++(ts->tv_sec);
-    }
-
-    ts->tv_usec = (suseconds_t) usec;
-}
-
-static DAQ_Verdict daq_handle_retry_request(DAQRegTestContext* context, const DAQ_PktHdr_t* hdr,
-    const uint8_t* data)
-{
-    // FIXIT-L for current reg test needs or snort only 1 pending retry is required so if we
-    //         get a 2nd request we just let it pass.  future support for >1 pending retries
-    //         can be implemented with a list holding the hdr & data for each retry packet.
-    if ( !context->retry_data )
-    {
-        context->retry_hdr = *hdr;
-        context->retry_data = malloc(hdr->caplen);
-        if ( context->retry_data )
-        {
-            memcpy(context->retry_data, data, hdr->caplen);
-            context->retry_packet_countdown = context->packets_before_retry;
-            return DAQ_VERDICT_BLOCK;
-        }
-    }
-
-    return DAQ_VERDICT_PASS;
-}
-
-static void daq_handle_pending_retry(DAQRegTestContext* context)
-{
-    if ( !context->retry_packet_countdown )
-    {
-        // time shift once with respect to the current header
-        update_hdr_after_retry(&context->retry_hdr, 1, context->retry_delay);
-        context->retry_delay_counter++;
-        context->retry_hdr.flags |= DAQ_PKT_FLAG_RETRY_PACKET;
-        DAQ_Verdict verdict = context->wrapped_packet_callback(context->user,
-            &context->retry_hdr, context->retry_data);
-
-        if (verdict >= MAX_DAQ_VERDICT)
-            verdict = DAQ_VERDICT_PASS;
-        verdict = verdict_translation_table[verdict];
-        if ( verdict == DAQ_VERDICT_PASS )
-            context->module->inject(context->handle, &context->retry_hdr, context->retry_data,
-                context->retry_hdr.pktlen, 0);
-        free(context->retry_data);
-        context->retry_data = NULL;
-    }
-    else
-        context->retry_packet_countdown--;
-}
-
-//-------------------------------------------------------------------------
-static DAQ_Verdict daq_regtest_packet_callback(void* user, const DAQ_PktHdr_t* hdr,
-    const uint8_t* data)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)user;
-    DAQ_PktHdr_t* pkthdr = (DAQ_PktHdr_t*)(unsigned long)hdr; // suppress warning about const
-
-    if ( context->skip == 0 && context->trace > 0 )
-        pkthdr->flags |= DAQ_PKT_FLAG_TRACE_ENABLED;
-
-    if ( context->skip > 0 )
-        context->skip--;
-    else if ( context->trace > 0 )
-        context->trace--;
-
-    if ( context->retry_data )
-        daq_handle_pending_retry(context);
-    update_hdr_after_retry(pkthdr, context->retry_delay_counter, context->retry_delay);
-
-    DAQ_Verdict verdict = context->wrapped_packet_callback(context->user,
-        hdr, data);
-    if ( verdict == DAQ_VERDICT_RETRY )
-        verdict = daq_handle_retry_request(context, hdr, data);
-
-    return verdict;
-}
-
-static int daq_regtest_acquire (
-    void* handle, int cnt, DAQ_Analysis_Func_t callback, DAQ_Meta_Func_t meta, void* user)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    context->wrapped_packet_callback = callback;
-    context->user = user;
-    context->retry_data = NULL;
-
-    return context->module->acquire(context->handle, cnt, daq_regtest_packet_callback, meta, handle);
-}
-
-//-------------------------------------------------------------------------
-
-static int daq_regtest_breakloop (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->breakloop(context->handle);
-}
-
-static DAQ_State daq_regtest_check_status (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->check_status(context->handle);
-}
-
-static int daq_regtest_get_stats (void* handle, DAQ_Stats_t* stats)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->get_stats(context->handle, stats);
-}
-
-static void daq_regtest_reset_stats (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    context->module->reset_stats(context->handle);
-}
-
-static int daq_regtest_get_snaplen (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->get_snaplen(context->handle);
-}
-
-static uint32_t daq_regtest_get_capabilities (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    uint32_t caps = context->module->get_capabilities(context->handle);
-    caps |= DAQ_CAPA_RETRY;
-    caps |= context->caps_cfg;
-    return caps;
-}
-
-static int daq_regtest_get_datalink_type(void *handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->get_datalink_type(context->handle);
-}
-
-static const char* daq_regtest_get_errbuf (void* handle)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->get_errbuf(context->handle);
-}
-
-static void daq_regtest_set_errbuf (void* handle, const char* s)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    context->module->set_errbuf(context->handle, s);
-}
-
-static int daq_regtest_get_device_index(void* handle, const char* device)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->get_device_index(context->handle, device);
-}
-
-static int daq_regtest_modify_flow(void *handle, const DAQ_PktHdr_t *hdr, const DAQ_ModFlow_t *modify)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-
-    if (modify->type == DAQ_MODFLOW_TYPE_PKT_TRACE)
-    {
-        if (modify->length != sizeof(DAQ_ModFlowPktTrace_t))
-            return DAQ_ERROR_INVAL;
-
-        const DAQ_ModFlowPktTrace_t* mod_tr = (const DAQ_ModFlowPktTrace_t *) modify->value;
-        printf("DAQ_REGTEST_PKT_TRACE (%d)\n%s\n", mod_tr->pkt_trace_data_len,
-            mod_tr->pkt_trace_data);
-    }
-    if (context->module->modify_flow)
-        return context->module->modify_flow(context->handle, hdr, modify);
-    else
-        return DAQ_SUCCESS;
-}
-
-static int daq_regtest_set_filter (void* handle, const char* filter)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    return context->module->set_filter(context->handle, filter);
-}
-
-static int daq_regtest_hup_prep(void *handle, void **new_config)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    DAQRegTestConfig* newConf;
-    int rval = DAQ_SUCCESS;
-
-    if ( ( rval = daq_regtest_parse_config(context, &newConf, NULL, 0) ) == DAQ_SUCCESS )
-    {
-        daq_regtest_debug(context, "daq_regtest hup_prep succeeded");
-        *new_config = newConf;
-    }
-    else
-        daq_regtest_debug(context, "daq_regtest hup_prep failed");
-    return rval;
-}
-
-static int daq_regtest_hup_apply(void *handle, void *new_config, void **old_config)
-{
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    DAQRegTestConfig* config = (DAQRegTestConfig*)new_config;
-
-    *old_config = context->daq_regtest_cfg;
-    context->daq_regtest_cfg = config;
-    daq_regtest_debug(context, "daq_regtest hup_apply succeeded");
+    daq_base_api = *base_api;
 
     return DAQ_SUCCESS;
 }
 
-static int daq_regtest_hup_post(void *handle, void *old_config)
+static int regtest_daq_get_variable_descs(const DAQ_VariableDesc_t **var_desc_table)
 {
-    DAQRegTestContext* context = (DAQRegTestContext*)handle;
-    DAQRegTestConfig* config = (DAQRegTestConfig*)old_config;
+    *var_desc_table = regtest_variable_descriptions;
 
-    daq_regtest_debug(context, "daq_regtest hup_post succeeded");
+    return sizeof(regtest_variable_descriptions) / sizeof(DAQ_VariableDesc_t);
+}
 
-    if ( config->buf ) 
+static int regtest_daq_instantiate(const DAQ_ModuleConfig_h modcfg, DAQ_ModuleInstance_h modinst, void **ctxt_ptr)
+{
+    RegTestContext* rtc;
+
+    rtc = calloc(1, sizeof(RegTestContext));
+    if (!rtc)
+    {
+        SET_ERROR(modinst, "%s: Couldn't allocate memory for the new daq_regtest context!", DAQ_NAME);
+        return DAQ_ERROR_NOMEM;
+    }
+    rtc->modinst = modinst;
+
+    if (daq_base_api.resolve_subapi(modinst, &rtc->subapi) != DAQ_SUCCESS)
+    {
+        SET_ERROR(modinst, "%s: Couldn't resolve subapi. No submodule configured?", DAQ_NAME);
+        free(rtc);
+        return DAQ_ERROR_INVAL;
+    }
+
+    int rval = regtest_daq_parse_config(rtc, &rtc->cfg);
+    if (rval != DAQ_SUCCESS)
+    {
+        free(rtc);
+        return rval;
+    }
+
+    const char *varKey, *varValue;
+    daq_base_api.config_first_variable(modcfg, &varKey, &varValue);
+    while (varKey)
+    {
+        if (!strcmp(varKey, "skip"))
+            rtc->skip = strtoul(varValue, NULL, 10);
+        else if (!strcmp(varKey, "trace"))
+            rtc->trace = strtoul(varValue, NULL, 10);
+        else if (!strcmp(varKey, "caps"))
+        {
+            // DAQ capabilities in hex, e.g. caps=0x00004000
+            rtc->caps_cfg = strtoul(varValue, NULL, 0);
+        }
+        daq_base_api.config_next_variable(modcfg, &varKey, &varValue);
+    }
+
+    rtc->debug_fh = fopen(REGTEST_DEBUG_FILE, "w");
+
+    regtest_daq_debug(rtc, "daq_regtest instantiated");
+
+    *ctxt_ptr = rtc;
+
+    return rval;
+}
+
+static void regtest_daq_destroy(void* handle)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+
+    if (rtc->debug_fh)
+    {
+        fprintf(rtc->debug_fh, "daq_regtest destroyed\n");
+        fclose(rtc->debug_fh);
+    }
+
+    if (rtc->cfg)
+    {
+        if (rtc->cfg->buf)
+            free(rtc->cfg->buf);
+        free(rtc->cfg);
+    }
+
+    free(rtc);
+}
+
+static int regtest_daq_ioctl(void *handle, DAQ_IoctlCmd cmd, void *arg, size_t arglen)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+
+    if (cmd == DIOCTL_SET_PACKET_TRACE_DATA)
+    {
+        if (arglen != sizeof(DIOCTL_SetPacketTraceData))
+            return DAQ_ERROR_INVAL;
+        DIOCTL_SetPacketTraceData *sptd = (DIOCTL_SetPacketTraceData *) arg;
+        if (!sptd->msg || (!sptd->trace_data && sptd->trace_data_len != 0))
+            return DAQ_ERROR_INVAL;
+        printf("DAQ_REGTEST_PKT_TRACE (%d)\n%s\n", sptd->trace_data_len, sptd->trace_data);
+    }
+
+    if (CHECK_SUBAPI(rtc, ioctl))
+        return CALL_SUBAPI(rtc, ioctl, cmd, arg, arglen);
+
+    return DAQ_ERROR_NOTSUP;
+}
+
+static uint32_t regtest_daq_get_capabilities(void* handle)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+    uint32_t caps = CALL_SUBAPI_NOARGS(rtc, get_capabilities);
+    caps |= rtc->caps_cfg;
+    return caps;
+}
+
+static int regtest_daq_config_load(void *handle, void **new_config)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+    RegTestConfig* newConf;
+    int rval = DAQ_SUCCESS;
+
+    if ((rval = regtest_daq_parse_config(rtc, &newConf)) == DAQ_SUCCESS)
+    {
+        regtest_daq_debug(rtc, "daq_regtest config_load succeeded");
+        *new_config = newConf;
+    }
+    else
+        regtest_daq_debug(rtc, "daq_regtest config_load failed");
+    return rval;
+}
+
+static int regtest_daq_config_swap(void *handle, void *new_config, void **old_config)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+    RegTestConfig* config = (RegTestConfig*)new_config;
+
+    *old_config = rtc->cfg;
+    rtc->cfg = config;
+    regtest_daq_debug(rtc, "daq_regtest config_swap succeeded");
+
+    return DAQ_SUCCESS;
+}
+
+static int regtest_daq_config_free(void *handle, void *old_config)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+    RegTestConfig* config = (RegTestConfig*)old_config;
+
+    regtest_daq_debug(rtc, "daq_regtest config_free succeeded");
+
+    if (config->buf) 
         free(config->buf);
     free(config);
 
     return DAQ_SUCCESS;
 }
 
+static unsigned regtest_daq_msg_receive(void *handle, const unsigned max_recv, const DAQ_Msg_t *msgs[], DAQ_RecvStatus *rstat)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+    unsigned num_receive = CALL_SUBAPI(rtc, msg_receive, max_recv, msgs, rstat);
+
+    if (rtc->trace > 0)
+    {
+        for (unsigned idx = 0; idx < num_receive; idx++)
+        {
+            const DAQ_Msg_t *msg = msgs[idx];
+
+            if (msg->type != DAQ_MSG_TYPE_PACKET)
+                continue;
+
+            if (rtc->skip > 0)
+                rtc->skip--;
+            else if (rtc->trace > 0)
+            {
+                DAQ_PktHdr_t* pkthdr = (DAQ_PktHdr_t*) msg->hdr;
+                pkthdr->flags |= DAQ_PKT_FLAG_TRACE_ENABLED;
+                rtc->trace--;
+            }
+        }
+    }
+
+    return num_receive;
+}
+
 
 //-------------------------------------------------------------------------
 
-DAQ_SO_PUBLIC DAQ_Module_t DAQ_MODULE_DATA =
+DAQ_SO_PUBLIC DAQ_ModuleAPI_t DAQ_MODULE_DATA =
 {
-    .api_version = DAQ_API_VERSION,
-    .module_version = DAQ_MOD_VERSION,
-    .name = DAQ_NAME,
-    .type = DAQ_TYPE,
-    .initialize = daq_regtest_initialize,
-    .set_filter = daq_regtest_set_filter,
-    .start = daq_regtest_start,
-    .acquire = daq_regtest_acquire,
-    .inject = daq_regtest_inject,
-    .breakloop = daq_regtest_breakloop,
-    .stop = daq_regtest_stop,
-    .shutdown = daq_regtest_shutdown,
-    .check_status = daq_regtest_check_status,
-    .get_stats = daq_regtest_get_stats,
-    .reset_stats = daq_regtest_reset_stats,
-    .get_snaplen = daq_regtest_get_snaplen,
-    .get_capabilities = daq_regtest_get_capabilities,
-    .get_datalink_type = daq_regtest_get_datalink_type,
-    .get_errbuf = daq_regtest_get_errbuf,
-    .set_errbuf = daq_regtest_set_errbuf,
-    .get_device_index = daq_regtest_get_device_index,
-    .modify_flow = daq_regtest_modify_flow,
-    .hup_prep = daq_regtest_hup_prep,
-    .hup_apply = daq_regtest_hup_apply,
-    .hup_post = daq_regtest_hup_post,
+    /* .api_version = */ DAQ_MODULE_API_VERSION,
+    /* .api_size = */ sizeof(DAQ_ModuleAPI_t),
+    /* .module_version = */ DAQ_MOD_VERSION,
+    /* .name = */ DAQ_NAME,
+    /* .type = */ DAQ_TYPE_WRAPPER | DAQ_TYPE_INLINE_CAPABLE,
+    /* .load = */ regtest_daq_module_load,
+    /* .unload = */ NULL,
+    /* .get_variable_descs = */ regtest_daq_get_variable_descs,
+    /* .instantiate = */ regtest_daq_instantiate,
+    /* .destroy = */ regtest_daq_destroy,
+    /* .set_filter = */ NULL,
+    /* .start = */ NULL,
+    /* .inject = */ NULL,
+    /* .inject_relative = */ NULL,
+    /* .interrupt = */ NULL,
+    /* .stop = */ NULL,
+    /* .ioctl = */ regtest_daq_ioctl,
+    /* .get_stats = */ NULL,
+    /* .reset_stats = */ NULL,
+    /* .get_snaplen = */ NULL,
+    /* .get_capabilities = */ regtest_daq_get_capabilities,
+    /* .get_datalink_type = */ NULL,
+    /* .config_load = */ regtest_daq_config_load,
+    /* .config_swap = */ regtest_daq_config_swap,
+    /* .config_free = */ regtest_daq_config_free,
+    /* .msg_receive = */ regtest_daq_msg_receive,
+    /* .msg_finalize = */ NULL,
+    /* .get_msg_pool_info = */ NULL,
 };
