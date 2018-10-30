@@ -107,7 +107,7 @@ class ThirdPartyAppIDSessionImpl : public ThirdPartyAppIDSession
 public:
 
     bool reset() { return 1; }
-    bool process(const snort::Packet&,
+    TPState process(const snort::Packet&,
         AppidSessionDirection direction,
         vector<AppId>& proto_list,
         ThirdPartyAppIDAttributeData& attribute_data)
@@ -117,7 +117,7 @@ public:
              << ": third party packet parsing and appid processing."
              << " Packet: " << snort::get_packet_number() << endl;
         cerr << msg.str();
-        return 1;
+        return TP_STATE_INIT;
     }
 
     int disable_flags(uint32_t session_flags) { return 0; }
