@@ -162,7 +162,7 @@ bool DomainFilterModule::set(const char* fqn, Value& v, SnortConfig* sc)
 class HttpHandler : public DataHandler
 {
 public:
-    HttpHandler(DomainSet& sv) : hosts(sv) { }
+    HttpHandler(DomainSet& sv) : DataHandler(s_name), hosts(sv) { }
 
     void handle(DataEvent& e, Flow*) override;
 
