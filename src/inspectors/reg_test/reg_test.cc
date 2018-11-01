@@ -235,7 +235,7 @@ void RtiService::do_daq_packet_retry_test(Packet* p)
 
             if (retry_packet)
             {
-                Active::daq_retry_packet(p);
+                p->active->daq_retry_packet(p);
                 retry_packet = false;
                 expect_retry_packet = true;
                 rti_stats.retry_requests++;
