@@ -19,7 +19,7 @@ add_library (
 
 if ( APPLE )
     set_target_properties (
-      tp_lib
+      tp_mock
         PROPERTIES
             LINK_FLAGS "-undefined dynamic_lookup"
     )
