@@ -138,8 +138,7 @@ void RegTestFlowData::handle_expected(Packet*)
 class ExpectEventHandler : public DataHandler
 {
 public:
-    ExpectEventHandler()
-    {  }
+    ExpectEventHandler() : DataHandler(s_name) { }
 
     void handle(DataEvent&, Flow*) override;
 };

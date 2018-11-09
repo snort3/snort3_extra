@@ -43,7 +43,7 @@ static THREAD_LOCAL SimpleStats dl_stats;
 class LogHandler : public DataHandler
 {
 public:
-    LogHandler(const std::string& s)
+    LogHandler(const std::string& s) : DataHandler(s_name)
     { key = s; }
 
     void handle(DataEvent& e, Flow*) override;
