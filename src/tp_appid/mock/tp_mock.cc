@@ -63,7 +63,7 @@ public:
         cerr << WhereMacro << endl;
     }
 
-    int pinit(ThirdPartyConfig& config)
+    int pinit(ThirdPartyConfig&)
     {
         cerr << WhereMacro
              << ": main thread initialization, possibly load other libraries." << endl;
@@ -78,7 +78,7 @@ public:
         return 0;
     }
 
-    int reconfigure(const ThirdPartyConfig& config)
+    int reconfigure(const ThirdPartyConfig&)
     {
         cerr << WhereMacro << ": do not call pinit() during reconfigure." << endl;
         return 0;
@@ -107,10 +107,9 @@ class ThirdPartyAppIDSessionImpl : public ThirdPartyAppIDSession
 public:
 
     bool reset() { return 1; }
-    TPState process(const snort::Packet&,
-        AppidSessionDirection direction,
-        vector<AppId>& proto_list,
-        ThirdPartyAppIDAttributeData& attribute_data)
+    TPState process(
+        const snort::Packet&, AppidSessionDirection, vector<AppId>&,
+        ThirdPartyAppIDAttributeData&)
     {
         stringstream msg;
         msg  << WhereMacro
@@ -120,7 +119,7 @@ public:
         return TP_STATE_INIT;
     }
 
-    int disable_flags(uint32_t session_flags) { return 0; }
+    int disable_flags(uint32_t) { return 0; }
     TPState get_state() { return state; }
     void set_state(TPState s) { state=s; }
     void clear_attr(TPSessionAttr attr) { flags &= ~attr; }
