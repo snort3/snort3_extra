@@ -149,7 +149,7 @@ static const Parameter dl_params[] =
     { "key", Parameter::PT_SELECT, "http_request_header_event | http_response_header_event",
       "http_request_header_event ", "name of the event to log" },
 
-    { "limit", Parameter::PT_INT, "0:", "0",
+    { "limit", Parameter::PT_INT, "0:max32", "0",
       "set maximum size in MB before rollover (0 is unlimited)" },
 
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
@@ -191,7 +191,7 @@ bool DataLogModule::set(const char*, Value& v, SnortConfig*)
         key = v.get_string();
 
     else if ( v.is("limit") )
-        limit = v.get_long() * M_BYTES;
+        limit = v.get_uint32() * M_BYTES;
 
     else
         return false;
