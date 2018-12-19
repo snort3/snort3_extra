@@ -72,7 +72,7 @@ public:
         return KTrieSearch(obj, T, n, match, context);
     }
 
-    int get_pattern_count() override
+    int get_pattern_count() const override
     { return KTriePatternCount(obj); }
 };
 
