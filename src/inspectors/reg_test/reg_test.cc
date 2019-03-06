@@ -107,6 +107,9 @@ public:
 
     void handle_expected(Packet*) override;
 
+    size_t size_of() override
+    { return sizeof(*this); }
+
 public:
     static unsigned inspector_id;
     unsigned test_id;
