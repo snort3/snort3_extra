@@ -52,6 +52,8 @@ typedef struct
     uint32_t caps_cfg;
     DAQ_PktHdr_t retry_hdr;
     uint8_t* retry_data;
+    uint32_t retry_delay;         // microsecond time shift for retry and subsequent packets
+    uint32_t retry_delay_counter; // # of retry happened so far for time shift calculations
     unsigned packets_before_retry;
     unsigned retry_packet_countdown;
     void* user;
@@ -76,6 +78,8 @@ static void daq_regtest_get_vars(DAQRegTestContext* context, const DAQ_Config_t*
 
     context->skip = 0;
     context->trace = 0;
+    context->retry_delay = 0;
+    context->retry_delay_counter = 0;
     context->packets_before_retry = 0;
     context->caps_cfg = 0;
     for ( entry = cfg->values; entry; entry = entry->next)
@@ -87,6 +91,10 @@ static void daq_regtest_get_vars(DAQRegTestContext* context, const DAQ_Config_t*
         else if ( !strcmp(entry->key, "trace") )
         {
             context->trace = atoi(entry->value);
+        }
+        else if ( !strcmp(entry->key, "retry_delay") )
+        {
+            context->retry_delay = atoi(entry->value);
         }
         else if ( !strcmp(entry->key, "packets_before_retry") )
         {
@@ -268,6 +276,23 @@ static int daq_regtest_inject (
     return context->module->inject(context->handle, hdr, buf, len, reverse);
 }
 
+static void update_hdr_after_retry(DAQ_PktHdr_t* hdr, uint32_t counter, uint32_t delay)
+{
+    if (!counter || !delay)
+        return;
+
+    struct timeval* ts = (struct timeval*) &hdr->ts;
+    uint64_t usec = counter * delay + ts->tv_usec;
+
+    while (usec >= 1000000)
+    {
+        usec -= 1000000;
+        ++(ts->tv_sec);
+    }
+
+    ts->tv_usec = (suseconds_t) usec;
+}
+
 static DAQ_Verdict daq_handle_retry_request(DAQRegTestContext* context, const DAQ_PktHdr_t* hdr,
     const uint8_t* data)
 {
@@ -293,6 +318,9 @@ static void daq_handle_pending_retry(DAQRegTestContext* context)
 {
     if ( !context->retry_packet_countdown )
     {
+        // time shift once with respect to the current header
+        update_hdr_after_retry(&context->retry_hdr, 1, context->retry_delay);
+        context->retry_delay_counter++;
         context->retry_hdr.flags |= DAQ_PKT_FLAG_RETRY_PACKET;
         DAQ_Verdict verdict = context->wrapped_packet_callback(context->user,
             &context->retry_hdr, context->retry_data);
@@ -315,12 +343,10 @@ static DAQ_Verdict daq_regtest_packet_callback(void* user, const DAQ_PktHdr_t* h
     const uint8_t* data)
 {
     DAQRegTestContext* context = (DAQRegTestContext*)user;
+    DAQ_PktHdr_t* pkthdr = (DAQ_PktHdr_t*)(unsigned long)hdr; // suppress warning about const
 
     if ( context->skip == 0 && context->trace > 0 )
-    {
-        DAQ_PktHdr_t* pkthdr = (DAQ_PktHdr_t*)hdr;
         pkthdr->flags |= DAQ_PKT_FLAG_TRACE_ENABLED;
-    }
 
     if ( context->skip > 0 )
         context->skip--;
@@ -329,6 +355,7 @@ static DAQ_Verdict daq_regtest_packet_callback(void* user, const DAQ_PktHdr_t* h
 
     if ( context->retry_data )
         daq_handle_pending_retry(context);
+    update_hdr_after_retry(pkthdr, context->retry_delay_counter, context->retry_delay);
 
     DAQ_Verdict verdict = context->wrapped_packet_callback(context->user,
         hdr, data);
