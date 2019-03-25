@@ -61,7 +61,7 @@ public:
 
 bool ExModule::set(const char*, Value& v, SnortConfig*)
 {
-    if ( v.is("packet") )
+    if ( v.is("upper") )
         upper = v.get_bool();
 
     else
