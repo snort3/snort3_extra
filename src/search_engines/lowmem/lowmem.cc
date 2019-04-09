@@ -131,6 +131,7 @@ static const MpseApi lm_api =
     lm_dtor,
     lm_init,
     lm_print,
+    nullptr
 };
 
 const BaseApi* se_lowmem = &lm_api.base;
