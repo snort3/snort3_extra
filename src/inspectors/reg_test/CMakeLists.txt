@@ -15,6 +15,7 @@ pkg_search_module ( SNORT3 REQUIRED snort>=3 )
 add_library (
     reg_test MODULE
     reg_test.cc
+    reg_test_splitter.cc
 )
 
 if ( APPLE )

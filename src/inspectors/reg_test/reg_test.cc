@@ -17,6 +17,8 @@
 //--------------------------------------------------------------------------
 // rti_service.cc author davis mcpherson <davmcphe@cisco.com>
 
+#include "reg_test.h"
+
 #include <ctime>
 
 #include "flow/expect_cache.h"
@@ -30,27 +32,25 @@
 #include "time/packet_time.h"
 #include "utils/util_cstring.h"
 
+#include "reg_test_splitter.h"
+
 using namespace snort;
 
 static const char* s_name = "reg_test";
 static const char* s_help = "The regression test inspector (rti) is used when special packet handling is required for a reg test";
-
-struct RtiStats
-{
-    PegCount total_packets;
-    PegCount retry_requests;
-    PegCount retry_packets;
-};
 
 const PegInfo rti_pegs[] =
 {
     { CountType::SUM, "packets", "total packets" },
     { CountType::SUM, "retry_requests", "total retry packets requested" },
     { CountType::SUM, "retry_packets", "total retried packets received" },
+    { CountType::SUM, "flush_requests", "total splitter flush requests" },
+    { CountType::SUM, "hold_requests", "total splitter hold requests" },
+    { CountType::SUM, "search_requests", "total splitter search requests" },
     { CountType::END, nullptr, nullptr }
 };
 
-static THREAD_LOCAL RtiStats rti_stats;
+THREAD_LOCAL RtiStats rti_stats;
 
 //-------------------------------------------------------------------------
 // module stuff
@@ -106,7 +106,6 @@ public:
     { inspector_id = FlowData::create_flow_data_id(); }
 
     void handle_expected(Packet*) override;
-
     size_t size_of() override
     { return sizeof(*this); }
 
@@ -203,6 +202,8 @@ public:
         return true;
     }
 
+    StreamSplitter* get_splitter(bool to_server) override;
+
 private:
     bool test_daq_retry;
     void do_daq_packet_retry_test(Packet* p);
@@ -225,6 +226,11 @@ void RtiService::eval(Packet* p)
 void RtiService::show(SnortConfig*)
 {
     LogMessage("%s config:\n", s_name);
+}
+
+StreamSplitter* RtiService::get_splitter(bool to_server)
+{
+    return new RegTestSplitter(to_server);
 }
 
 void RtiService::do_daq_packet_retry_test(Packet* p)
@@ -289,7 +295,7 @@ static const InspectApi rti_api
         mod_ctor,
         mod_dtor
     },
-    IT_PACKET,
+    IT_SERVICE,
     PROTO_BIT__ANY_PDU,
     nullptr, // buffers
     s_name,  // service
