@@ -1,6 +1,7 @@
 add_subdirectory ( data_log )
 add_subdirectory ( domain_filter )
 add_subdirectory ( dpx )
+add_subdirectory ( finalize_packet )
 add_subdirectory ( mem_test )
 add_subdirectory ( rt_packet_inspector )
 add_subdirectory ( rt_service_inspector )
