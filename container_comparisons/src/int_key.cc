@@ -46,7 +46,7 @@ void execute_test(DataUser& sink)
     vector<int> vector_storage(UNIQUE_KEYS_MAX, 0);
 
     vector<int> function_ids;
-    // a vector of all keys to be tested, which we can shuffle in order to randomise input
+    // a vector of all keys to be tested, which we can shuffle in order to randomize input
     vector<int> keys;
 
     // for uniform probability distribution
@@ -72,7 +72,7 @@ void execute_test(DataUser& sink)
             function_ids.push_back(rand()%2);
     }
 
-    // shuffle the keys to randomise access order
+    // shuffle the keys to randomize access order
     shuffle(begin(keys), end(keys), eng);
 
     auto unordered_operation = [&](auto& key, int &id)

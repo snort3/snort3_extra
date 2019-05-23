@@ -32,7 +32,7 @@ using namespace std;
 #define UNIQUE_KEYS_MAX  13
 
 // the number of keys we will generate (the size of the test)
-// 10 million cummulative operations on each container for every test
+// 10 million cumulative operations on each container for every test
 #define KEYS_MAX 10000000
 
 #define TOTAL_TEST_RUNS 100
@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& os, const ReportKey& key)
 }
 
 
-// use a virtual method to prevent the optimiser from detecting that our sink function actually does nothing. otherwise it might skew the test
+// use a virtual method to prevent the optimizer from detecting that our sink function actually does nothing. otherwise it might skew the test
 struct DataUser
 {
     virtual void sink(const int &) = 0;
@@ -91,7 +91,7 @@ struct RealDataUserPrint : DataUser
     }
 };
 
-// this is a runtime operation and therefore prevents the optimiser from realising that the sink does nothing
+// this is a runtime operation and therefore prevents the optimizer from realizing that the sink does nothing
 std::unique_ptr<DataUser> make_sink(const int &id)
 {
     if (id == 1)
