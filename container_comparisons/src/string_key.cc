@@ -34,7 +34,7 @@ using namespace std;
 static long double unordered_total_time;
 static long double ordered_total_time;
 
-//TODO: Read these keys from an input file (can be specified as a cmd arg) for scalability and more genericness
+//TODO: Read these keys from an input file (can be specified as a cmd arg) for a more scalable and generic approach
 // all unique keys for evaluating performance against
 static vector<string> unique_keys = {"appid-service", "appid-client", "appid-payload", "appid-misc", "appid-referred", "host", "tls-host", "url", "user-agent", "response-code", "referer", "xff", "client-version"}; 
 
@@ -69,7 +69,7 @@ void execute_test(DataUser& sink)
             function_ids.push_back(rand()%2);
     }
 
-    // shuffle the keys to randomise access order
+    // shuffle the keys to randomize access order
     shuffle(begin(keys), end(keys), eng);
 
     auto unordered_operation = [&](auto& key, int &id)
