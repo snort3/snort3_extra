@@ -21,8 +21,8 @@
 #include "config.h"
 #endif
 
-#include "reg_test.h"
-#include "reg_test_splitter.h"
+#include "rt_service_inspector.h"
+#include "rt_service_inspector_splitter.h"
 
 #include <string.h>
 
@@ -69,21 +69,21 @@ StreamSplitter::Status RegTestSplitter::scan(
     if ( strncmp((const char*)data, "flush", 5) == 0 )
     {
         *fp = len;
-        rti_stats.flush_requests++;
+        rtsi_stats.flush_requests++;
         return FLUSH;
     }
     else if ( strncmp((const char*)data, "hold", 4) == 0)
     {
         Stream::set_packet_action_to_hold(p);
-        rti_stats.hold_requests++;
+        rtsi_stats.hold_requests++;
     }
     else if (has_script(data, len) )
     {
         Stream::set_packet_action_to_hold(p);
-        rti_stats.hold_requests++;
+        rtsi_stats.hold_requests++;
     }
 
-    rti_stats.search_requests++;
+    rtsi_stats.search_requests++;
     return SEARCH;
 }
 

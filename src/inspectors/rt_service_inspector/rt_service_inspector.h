@@ -15,25 +15,23 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //--------------------------------------------------------------------------
-// reg_test.h author davis mcpherson <davmcphe@cisco.com>
+// rt_service_inspector.h author davis mcpherson <davmcphe@cisco.com>
 
-#ifndef REG_TEST_H
-#define REG_TEST_H
+#ifndef RT_SERVICE_INSPECTOR_H
+#define RT_SERVICE_INSPECTOR_H
 
 #include <framework/counts.h>
 #include <main/thread.h>
 
-struct RtiStats
+struct RtServiceInspectorStats
 {
     PegCount total_packets;
-    PegCount retry_requests;
-    PegCount retry_packets;
     PegCount flush_requests;
     PegCount hold_requests;
     PegCount search_requests;
 };
 
-extern THREAD_LOCAL RtiStats rti_stats;
+extern THREAD_LOCAL RtServiceInspectorStats rtsi_stats;
 
 #endif
 
