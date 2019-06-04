@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------
-// Copyright (C) 2017-2019 Cisco and/or its affiliates. All rights reserved.
+// Copyright (C) 2019-2019 Cisco and/or its affiliates. All rights reserved.
 //
 // This program is free software; you can redistribute it and/or modify it
 // under the terms of the GNU General Public License Version 2 as published
@@ -15,9 +15,9 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //--------------------------------------------------------------------------
-// rti_service.cc author davis mcpherson <davmcphe@cisco.com>
+// rt_packet_inspector.cc author davis mcpherson <davmcphe@cisco.com>
 
-#include "reg_test.h"
+#include "rt_packet_inspector.h"
 
 #include <ctime>
 
@@ -32,31 +32,26 @@
 #include "time/packet_time.h"
 #include "utils/util_cstring.h"
 
-#include "reg_test_splitter.h"
-
 using namespace snort;
 
-static const char* s_name = "reg_test";
-static const char* s_help = "The regression test inspector (rti) is used when special packet handling is required for a reg test";
+static const char* s_name = "rt_packet";
+static const char* s_help = "The regression test packet inspector is used when special packet handling is required for a reg test";
 
-const PegInfo rti_pegs[] =
+const PegInfo rtpi_pegs[] =
 {
     { CountType::SUM, "packets", "total packets" },
     { CountType::SUM, "retry_requests", "total retry packets requested" },
     { CountType::SUM, "retry_packets", "total retried packets received" },
-    { CountType::SUM, "flush_requests", "total splitter flush requests" },
-    { CountType::SUM, "hold_requests", "total splitter hold requests" },
-    { CountType::SUM, "search_requests", "total splitter search requests" },
     { CountType::END, nullptr, nullptr }
 };
 
-THREAD_LOCAL RtiStats rti_stats;
+THREAD_LOCAL RtPacketInspectorStats rtpi_stats;
 
 //-------------------------------------------------------------------------
 // module stuff
 //-------------------------------------------------------------------------
 
-static const Parameter rti_params[] =
+static const Parameter rtpi_params[] =
 {
     { "test_daq_retry", Parameter::PT_BOOL, nullptr, "true",
         "test daq packet retry feature" },
@@ -64,17 +59,17 @@ static const Parameter rti_params[] =
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
-class RtiServiceModule : public Module
+class RtPacketInspectorModule : public Module
 {
 public:
-    RtiServiceModule() : Module(s_name, s_help, rti_params)
+    RtPacketInspectorModule() : Module(s_name, s_help, rtpi_params)
     { }
 
     const PegInfo* get_pegs() const override
-    { return rti_pegs; }
+    { return rtpi_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&rti_stats; }
+    { return (PegCount*)&rtpi_stats; }
 
     bool set(const char*, Value& v, SnortConfig*) override;
 
@@ -84,7 +79,7 @@ public:
     bool test_daq_retry = true;
 };
 
-bool RtiServiceModule::set(const char*, Value& v, SnortConfig*)
+bool RtPacketInspectorModule::set(const char*, Value& v, SnortConfig*)
 {
     if ( v.is("test_daq_retry") )
         test_daq_retry = v.get_bool();
@@ -97,11 +92,11 @@ bool RtiServiceModule::set(const char*, Value& v, SnortConfig*)
 //-------------------------------------------------------------------------
 // flow data stuff
 //-------------------------------------------------------------------------
-class RegTestFlowData : public FlowData
+class RtPacketInspectorFlowData : public FlowData
 {
 public:
-    RegTestFlowData();
-    ~RegTestFlowData() override;
+    RtPacketInspectorFlowData();
+    ~RtPacketInspectorFlowData() override;
     static void init()
     { inspector_id = FlowData::create_flow_data_id(); }
 
@@ -115,22 +110,22 @@ public:
     static unsigned test_id_counter;
 };
 
-unsigned RegTestFlowData::inspector_id = 0;
-unsigned RegTestFlowData::test_id_counter = 100;
+unsigned RtPacketInspectorFlowData::inspector_id = 0;
+unsigned RtPacketInspectorFlowData::test_id_counter = 100;
 
-RegTestFlowData::RegTestFlowData() : FlowData(inspector_id)
+RtPacketInspectorFlowData::RtPacketInspectorFlowData() : FlowData(inspector_id)
 {
     test_id = test_id_counter++;
 }
 
-RegTestFlowData::~RegTestFlowData()
+RtPacketInspectorFlowData::~RtPacketInspectorFlowData()
 {
-    LogMessage("Reg test: delete flow data, test_id=%d\n", test_id);
+    LogMessage("RtPacketInspector: delete flow data, test_id=%d\n", test_id);
 }
 
-void RegTestFlowData::handle_expected(Packet*)
+void RtPacketInspectorFlowData::handle_expected(Packet*)
 {
-    LogMessage("Reg test: handle expected, test_id=%d\n", test_id);
+    LogMessage("RtPacketInspector: handle expected, test_id=%d\n", test_id);
 }
 
 //-------------------------------------------------------------------------
@@ -152,18 +147,18 @@ void ExpectEventHandler::handle(DataEvent& event, Flow*)
     char cstr[INET6_ADDRSTRLEN], sstr[INET6_ADDRSTRLEN];
     expect_event->get_packet()->flow->client_ip.ntop(cstr, sizeof(cstr));
     expect_event->get_packet()->flow->server_ip.ntop(sstr, sizeof(sstr));
-    LogMessage("Reg test: received expect event. packet %s:%d -> %s:%d\n",
+    LogMessage("RtPacketInspector: received expect event. packet %s:%d -> %s:%d\n",
         cstr, expect_event->get_packet()->flow->client_port,
         sstr, expect_event->get_packet()->flow->server_port);
     ExpectFlow* flow = expect_event->get_expect_flow();
-    RegTestFlowData* fd = (RegTestFlowData*)flow->get_flow_data(RegTestFlowData::inspector_id);
+    RtPacketInspectorFlowData* fd = (RtPacketInspectorFlowData*)flow->get_flow_data(RtPacketInspectorFlowData::inspector_id);
     if (!fd)
     {
-        fd = new RegTestFlowData();
-        LogMessage("Reg test: created a new flow data, test_id=%u, adding ... ", fd->test_id);
+        fd = new RtPacketInspectorFlowData();
+        LogMessage("RtPacketInspector: created a new flow data, test_id=%u, adding ... ", fd->test_id);
         unsigned added_test_id = fd->test_id;
         flow->add_flow_data(fd);
-        fd = (RegTestFlowData*)flow->get_flow_data(RegTestFlowData::inspector_id);
+        fd = (RtPacketInspectorFlowData*)flow->get_flow_data(RtPacketInspectorFlowData::inspector_id);
         if (fd && fd->test_id == added_test_id)
             LogMessage("succeed!\n");
         else
@@ -177,7 +172,7 @@ void ExpectEventHandler::handle(DataEvent& event, Flow*)
     {
         for (auto ef : *expected_flows)
         {
-            RegTestFlowData* fd = (RegTestFlowData*)ef->get_flow_data(RegTestFlowData::inspector_id);
+            RtPacketInspectorFlowData* fd = (RtPacketInspectorFlowData*)ef->get_flow_data(RtPacketInspectorFlowData::inspector_id);
             if (fd)
                sfsnprintfappend(buff, LOG_BUFF_SIZE, " %u", fd->test_id);
         }
@@ -189,10 +184,10 @@ void ExpectEventHandler::handle(DataEvent& event, Flow*)
 // inspector stuff
 //-------------------------------------------------------------------------
 
-class RtiService : public Inspector
+class RtPacketInspector : public Inspector
 {
 public:
-    RtiService(RtiServiceModule* mod);
+    RtPacketInspector(RtPacketInspectorModule* mod);
 
     void show(SnortConfig*) override;
     void eval(Packet* p) override;
@@ -202,38 +197,31 @@ public:
         return true;
     }
 
-    StreamSplitter* get_splitter(bool to_server) override;
-
 private:
     bool test_daq_retry;
     void do_daq_packet_retry_test(Packet* p);
 };
 
-RtiService::RtiService(RtiServiceModule* mod)
+RtPacketInspector::RtPacketInspector(RtPacketInspectorModule* mod)
 {
     test_daq_retry = mod->is_test_daq_retry();
-    rti_stats.total_packets = 0;
+    rtpi_stats.total_packets = 0;
 }
 
-void RtiService::eval(Packet* p)
+void RtPacketInspector::eval(Packet* p)
 {
     if ( test_daq_retry )
         do_daq_packet_retry_test(p);
 
-    rti_stats.total_packets++;
+    rtpi_stats.total_packets++;
 }
 
-void RtiService::show(SnortConfig*)
+void RtPacketInspector::show(SnortConfig*)
 {
     LogMessage("%s config:\n", s_name);
 }
 
-StreamSplitter* RtiService::get_splitter(bool to_server)
-{
-    return new RegTestSplitter(to_server);
-}
-
-void RtiService::do_daq_packet_retry_test(Packet* p)
+void RtPacketInspector::do_daq_packet_retry_test(Packet* p)
 {
     if (p->dsize)
     {
@@ -247,14 +235,14 @@ void RtiService::do_daq_packet_retry_test(Packet* p)
                 p->active->daq_retry_packet(p);
                 retry_packet = false;
                 expect_retry_packet = true;
-                rti_stats.retry_requests++;
+                rtpi_stats.retry_requests++;
             }
             else if (expect_retry_packet)
             {
                 if ( p->is_retry() )
                 {
                     expect_retry_packet = false;
-                    rti_stats.retry_packets++;
+                    rtpi_stats.retry_packets++;
                 }
             }
         }
@@ -266,22 +254,22 @@ void RtiService::do_daq_packet_retry_test(Packet* p)
 //-------------------------------------------------------------------------
 static void reg_test_init()
 {
-    RegTestFlowData::init();
+    RtPacketInspectorFlowData::init();
 }
 
 static Module* mod_ctor()
-{ return new RtiServiceModule; }
+{ return new RtPacketInspectorModule; }
 
 static void mod_dtor(Module* m)
 { delete m; }
 
 static Inspector* rti_ctor(Module* m)
-{ return new RtiService((RtiServiceModule*)m); }
+{ return new RtPacketInspector((RtPacketInspectorModule*)m); }
 
 static void rti_dtor(Inspector* p)
 { delete p; }
 
-static const InspectApi rti_api
+static const InspectApi rtpi_api
 {
     {
         PT_INSPECTOR,
@@ -295,7 +283,7 @@ static const InspectApi rti_api
         mod_ctor,
         mod_dtor
     },
-    IT_SERVICE,
+    IT_PACKET,
     PROTO_BIT__ANY_PDU,
     nullptr, // buffers
     s_name,  // service
@@ -311,7 +299,7 @@ static const InspectApi rti_api
 
 SO_PUBLIC const BaseApi* snort_plugins[] =
 {
-    &rti_api.base,
+    &rtpi_api.base,
     nullptr
 };
 

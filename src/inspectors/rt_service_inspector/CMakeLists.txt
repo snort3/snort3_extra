@@ -1,5 +1,5 @@
 cmake_minimum_required ( VERSION 3.4.3 )
-project ( reg_test CXX )
+project ( rt_service_inspector CXX )
 
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,32 +13,32 @@ include ( FindPkgConfig )
 pkg_search_module ( SNORT3 REQUIRED snort>=3 )
 
 add_library (
-    reg_test MODULE
-    reg_test.cc
-    reg_test_splitter.cc
+    rt_service_inspector MODULE
+    rt_service_inspector.cc
+    rt_service_inspector_splitter.cc
 )
 
 if ( APPLE )
     set_target_properties (
-        reg_test
+        rt_service_inspector
         PROPERTIES
             LINK_FLAGS "-undefined dynamic_lookup"
     )
 endif ( APPLE )
 
 set_target_properties (
-    reg_test
+    rt_service_inspector
     PROPERTIES
         PREFIX ""
 )
 
 target_include_directories (
-    reg_test PUBLIC
+    rt_service_inspector PUBLIC
     ${SNORT3_INCLUDE_DIRS}
 )
 
 install (
-    TARGETS reg_test
+    TARGETS rt_service_inspector
     LIBRARY
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/inspectors"
 )
