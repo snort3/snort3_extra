@@ -19,10 +19,12 @@
 /* daq_regtest.c author Bhagya Tholpady <bbantwal@cisco.com>, Michael Altizer <mialtize@cisco.com> */
 
 #include <daq_module_api.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #define DAQ_MOD_VERSION 1
 #define DAQ_NAME "regtest"
@@ -56,6 +58,7 @@ typedef struct
     unsigned skip;
     unsigned trace;
     uint32_t caps_cfg;
+    bool ignore_vlan;
 
     /* State */
     FILE* debug_fh;
@@ -68,6 +71,7 @@ static DAQ_VariableDesc_t regtest_variable_descriptions[] =
     { "skip", "Number of packets to skip before starting to honor the trace option", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
     { "trace", "Number of packets to set the trace enabled flag on", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
     { "caps", "DAQ module capabilities to report (in hex)", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
+    { "ignore_vlan", "Set ignore_vlan flag to packet header", DAQ_VAR_DESC_FORBIDS_ARGUMENT },
 };
 
 DAQ_BaseAPI_t daq_base_api;
@@ -77,19 +81,28 @@ DAQ_BaseAPI_t daq_base_api;
 static int regtest_daq_parse_config(RegTestContext *rtc, RegTestConfig** new_config)
 {
     long size = 0;
+    struct stat sb;
+
+    RegTestConfig* config = calloc(1, sizeof(RegTestConfig));
+    if (!config)
+    {
+        fprintf(stderr, "%s: failed to allocate daq_regtest config", DAQ_NAME);
+        return DAQ_ERROR_NOMEM;
+    }
+
+    if (stat(REGTEST_CONFIG_FILE, &sb) == -1 && errno == ENOENT)
+    {
+        *new_config = config;
+        return DAQ_SUCCESS;
+    }
+
     FILE* fh = fopen(REGTEST_CONFIG_FILE, "r");
 
     if (!fh)
     {
         fprintf(stderr, "%s: failed to open the daq_regtest config file", DAQ_NAME);
+        free(config);
         return DAQ_ERROR;
-    }
-    RegTestConfig* config = calloc(1, sizeof(RegTestConfig));
-    if (!config)
-    {
-        fprintf(stderr, "%s: failed to allocate daq_regtest config", DAQ_NAME);
-        fclose(fh);
-        return DAQ_ERROR_NOMEM;
     }
 
     fseek(fh, 0, SEEK_END);
@@ -124,7 +137,7 @@ static void regtest_daq_debug(RegTestContext* rtc, char* msg)
     {
         fprintf (rtc->debug_fh, "%s\n", msg);
         fprintf (rtc->debug_fh, "daq_regtest config : \n\tbuf = %s \n\tconfig_num = %d \n", 
-                rtc->cfg->buf, rtc->cfg->config_num);
+                rtc->cfg->buf ? rtc->cfg->buf : "N/A", rtc->cfg->config_num);
         fflush(rtc->debug_fh);
     }
 }
@@ -188,6 +201,8 @@ static int regtest_daq_instantiate(const DAQ_ModuleConfig_h modcfg, DAQ_ModuleIn
             // DAQ capabilities in hex, e.g. caps=0x00004000
             rtc->caps_cfg = strtoul(varValue, NULL, 0);
         }
+        else if (!strcmp(varKey, "ignore_vlan"))
+            rtc->ignore_vlan = true;
         daq_base_api.config_next_variable(modcfg, &varKey, &varValue);
     }
 
@@ -312,6 +327,16 @@ static unsigned regtest_daq_msg_receive(void *handle, const unsigned max_recv, c
                 pkthdr->flags |= DAQ_PKT_FLAG_TRACE_ENABLED;
                 rtc->trace--;
             }
+        }
+    }
+
+    if (rtc->ignore_vlan)
+    {
+        for (unsigned idx = 0; idx < num_receive; idx++)
+        {
+            const DAQ_Msg_t *msg = msgs[idx];
+            DAQ_PktHdr_t* pkthdr = (DAQ_PktHdr_t*) msg->hdr;
+            pkthdr->flags |= DAQ_PKT_FLAG_IGNORE_VLAN;
         }
     }
 
