@@ -159,7 +159,9 @@ static int sock_setup(SocketContext* socket_context)
 
     if ((socket_context->sock_c = socket(PF_INET, SOCK_STREAM, 0)) == -1)
     {
-        SET_ERROR(socket_context->mod_inst, "%s: can't create listener socket (%s)\n", __func__);
+        char error_msg[1024] = {0};
+        strerror_r(errno, error_msg, sizeof(error_msg));
+        SET_ERROR(socket_context->mod_inst, "%s: can't create listener socket (%s)\n", __func__, error_msg);
         return -1;
     }
 
@@ -169,13 +171,17 @@ static int sock_setup(SocketContext* socket_context)
 
     if (bind(socket_context->sock_c, (struct sockaddr*)&sin, sizeof(sin)) == -1)
     {
-        SET_ERROR(socket_context->mod_inst, "%s: can't bind listener socket (%s)\n", __func__);
+        char error_msg[1024] = {0};
+        strerror_r(errno, error_msg, sizeof(error_msg));
+        SET_ERROR(socket_context->mod_inst, "%s: can't bind listener socket (%s)\n", __func__, error_msg);
         return -1;
     }
 
     if (listen(socket_context->sock_c, 2) == -1)
     {
-        SET_ERROR(socket_context->mod_inst, "%s: can't listen on socket (%s)\n", __func__);
+        char error_msg[1024] = {0};
+        strerror_r(errno, error_msg, sizeof(error_msg));
+        SET_ERROR(socket_context->mod_inst, "%s: can't listen on socket (%s)\n", __func__, error_msg);
         return -1;
     }
     return 0;
@@ -203,7 +209,9 @@ static int sock_recv(SocketContext* socket_context, SocketMsgDesc* desc, int* so
     {
         if (errno != EINTR)
         {
-            SET_ERROR(socket_context->mod_inst, "%s: can't recv from socket (%s)\n", __func__);
+            char error_msg[1024] = {0};
+            strerror_r(errno, error_msg, sizeof(error_msg));
+            SET_ERROR(socket_context->mod_inst, "%s: can't recv from socket (%s)\n", __func__, error_msg);
             desc->pci.flags = DAQ_USR_FLAG_END_FLOW;
             *sock = -1;
         }
@@ -227,7 +235,9 @@ static int sock_send(SocketContext* socket_context, int sock, const uint8_t* buf
     }
     if (n == -1)
     {
-        SET_ERROR(socket_context->mod_inst, "%s: can't send on socket (%s)\n", __func__);
+        char error_msg[1024] = {0};
+        strerror_r(errno, error_msg, sizeof(error_msg));
+        SET_ERROR(socket_context->mod_inst, "%s: can't send on socket (%s)\n", __func__, error_msg);
         return -1;
     }
     return 0;
@@ -241,7 +251,9 @@ static int sock_accept(SocketContext* socket_context, SocketMsgDesc* desc, int* 
 
     if (*sock == -1)
     {
-        SET_ERROR(socket_context->mod_inst, "%s: can't accept incoming connection (%s)\n", __func__);
+        char error_msg[1024] = {0};
+        strerror_r(errno, error_msg, sizeof(error_msg));
+        SET_ERROR(socket_context->mod_inst, "%s: can't accept incoming connection (%s)\n", __func__, error_msg);
         return -1;
     }
     banner = socket_context->use_a ? "client\n" : "server\n";
