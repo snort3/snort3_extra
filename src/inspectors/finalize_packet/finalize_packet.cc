@@ -42,6 +42,7 @@ struct FinalizePacketStats
 };
 
 static THREAD_LOCAL FinalizePacketStats fp_stats;
+static THREAD_LOCAL DAQ_Verdict modify_verdict = MAX_DAQ_VERDICT;
 
 const PegInfo fp_pegs[] =
 {
@@ -70,7 +71,15 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
 {
     FinalizePacketEvent* fp_event = (FinalizePacketEvent*)&event;
     const Packet* pkt = fp_event->get_packet();
-    DAQ_Verdict verdict = fp_event->get_verdict();
+    DAQ_Verdict& verdict = fp_event->get_verdict();
+    if ( modify_verdict != MAX_DAQ_VERDICT )
+    {
+        LogMessage("FinalizePacketHandler::handle: changed verdict for packet " STDu64
+            ", len %u. Verdict changed from %d to %d.\n",
+            pkt->context->packet_number, pkt->pktlen, verdict, modify_verdict);
+        verdict = modify_verdict;
+        modify_verdict = MAX_DAQ_VERDICT;
+    }
     fp_stats.events++;
     LogMessage("FinalizePacketHandler::handle: received event " STDu64
         " for packet " STDu64 ", len %u. Verdict is %d.\n",
@@ -84,10 +93,12 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
 class FinalizePacket : public Inspector
 {
 public:
-    FinalizePacket(uint32_t start, uint32_t end)
+    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict)
     {
         start_pdu = start;
         end_pdu = end;
+        modify_pdu = modify;
+        new_verdict = verdict;
     }
 
     void show(SnortConfig*) override;
@@ -98,6 +109,10 @@ public:
         {
             LogMessage("FinalizePacket::eval: enable finalize packet events.\n");
             p->flow->trigger_finalize_event = true;
+            if ( modify_pdu == fp_stats.pdus )
+            {
+                modify_verdict = new_verdict;
+            }
         }
         else
         {
@@ -118,6 +133,8 @@ public:
 private:
     uint32_t start_pdu;
     uint32_t end_pdu;
+    uint32_t modify_pdu;
+    DAQ_Verdict new_verdict;
 };
 
 void FinalizePacket::show(SnortConfig*)
@@ -125,11 +142,25 @@ void FinalizePacket::show(SnortConfig*)
     LogMessage("%s config:\n", s_name);
     LogMessage("    start: %u\n", start_pdu);
     LogMessage("    end: %u\n", end_pdu);
+    LogMessage("    modify: %u\n", modify_pdu);
+    LogMessage("    verdict: %d\n", new_verdict);
 }
 
 //-------------------------------------------------------------------------
 // module stuff
 //-------------------------------------------------------------------------
+
+static const Parameter modify_params[] =
+{
+    { "pdu", Parameter::PT_INT, "0:max32", "0",
+      "Modify verdict in finalize packet for this PDU" },
+
+    { "verdict", Parameter::PT_ENUM,
+        "pass | block | replace | whitelist | blacklist | ignore | retry", nullptr,
+        "output format for stats" },
+
+    { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
+};
 
 static const Parameter fp_params[] =
 {
@@ -138,6 +169,9 @@ static const Parameter fp_params[] =
 
     { "end_pdu", Parameter::PT_INT, "0:max32", "0",
       "Deregister for finalize packet events on this PDU" },
+
+    { "modify", Parameter::PT_TABLE, modify_params, nullptr,
+      "Modify verdict in finalize event" },
 
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
@@ -163,12 +197,16 @@ public:
 public:
     uint32_t start_pdu;
     uint32_t end_pdu;
+    uint32_t modify_pdu;
+    DAQ_Verdict new_verdict;
 };
 
 bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
 {
     start_pdu = 0;
     end_pdu = 0;
+    modify_pdu = 0;
+    new_verdict = MAX_DAQ_VERDICT;
     return true;
 }
 
@@ -180,6 +218,11 @@ bool FinalizePacketModule::set(const char*, Value& v, SnortConfig*)
     else if ( v.is("end_pdu") )
         end_pdu = v.get_uint32();
 
+    else if ( v.is("pdu") )
+        modify_pdu = v.get_uint32();
+
+    else if ( v.is("verdict") )
+        new_verdict = (DAQ_Verdict)v.get_uint8();
     else
         return false;
 
@@ -199,7 +242,7 @@ static void mod_dtor(Module* m)
 static Inspector* fp_ctor(Module* m)
 {
     FinalizePacketModule* mod = (FinalizePacketModule*)m;
-    return new FinalizePacket(mod->start_pdu, mod->end_pdu);
+    return new FinalizePacket(mod->start_pdu, mod->end_pdu, mod->modify_pdu, mod->new_verdict);
 }
 
 static void fp_dtor(Inspector* p)
