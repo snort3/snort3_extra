@@ -151,10 +151,9 @@ void ExpectEventHandler::handle(DataEvent& event, Flow*)
         cstr, expect_event->get_packet()->flow->client_port,
         sstr, expect_event->get_packet()->flow->server_port);
     ExpectFlow* flow = expect_event->get_expect_flow();
-    RtPacketInspectorFlowData* fd = (RtPacketInspectorFlowData*)flow->get_flow_data(RtPacketInspectorFlowData::inspector_id);
-    if (!fd)
+    if (flow->get_flow_data(RtPacketInspectorFlowData::inspector_id) == nullptr)
     {
-        fd = new RtPacketInspectorFlowData();
+        RtPacketInspectorFlowData* fd = new RtPacketInspectorFlowData();
         LogMessage("RtPacketInspector: created a new flow data, test_id=%u, adding ... ", fd->test_id);
         unsigned added_test_id = fd->test_id;
         flow->add_flow_data(fd);

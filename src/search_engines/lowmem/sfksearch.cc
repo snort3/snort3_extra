@@ -141,18 +141,13 @@ void KTrieDelete(KTRIE_STRUCT* k)
     {
         pnext = p->next;
 
-        if (k->agent && p->user)
-            k->agent->user_free(p->user);
-
         if (k->agent)
         {
-            if (p && p->rule_option_tree)
+            if (p->user)
+                k->agent->user_free(p->user);
+            if (p->rule_option_tree)
                 k->agent->tree_free(&p->rule_option_tree);
-        }
-
-        if (k->agent)
-        {
-            if (p && p->neg_list)
+            if (p->neg_list)
                 k->agent->list_free(&p->neg_list);
         }
 

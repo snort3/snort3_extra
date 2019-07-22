@@ -202,7 +202,7 @@ class DomainFilter : public Inspector
 {
 public:
     DomainFilter(DomainList&);
-    void eval(Packet*) { }
+    void eval(Packet*) override { }
 
 private:
     DomainSet hosts;
