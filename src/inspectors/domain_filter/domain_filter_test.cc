@@ -142,7 +142,7 @@ TEST_GROUP(domain_filter_base)
 {
     const BaseApi* api;
 
-    void setup()
+    void setup() override
     {
         api = snort_plugins[0];
         CHECK(api != nullptr);
@@ -167,7 +167,7 @@ TEST_GROUP(domain_filter_ins)
 {
     const InspectApi* api;
 
-    void setup()
+    void setup() override
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
@@ -232,7 +232,7 @@ TEST_GROUP(domain_filter_events)
     Inspector* ins;
     Module* mod;
 
-    void setup()
+    void setup() override
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
@@ -254,7 +254,7 @@ TEST_GROUP(domain_filter_events)
         mod->get_counts()[1] = 0;
     }
 
-    void teardown()
+    void teardown() override
     {
         api->dtor(ins);
         api->base.mod_dtor(mod);
