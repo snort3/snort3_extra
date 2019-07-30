@@ -26,6 +26,7 @@
 
 #include <string.h>
 
+#include "log/messages.h"
 #include "main/snort_config.h"
 #include "protocols/packet.h"
 #include "stream/stream.h"
@@ -81,6 +82,16 @@ StreamSplitter::Status RegTestSplitter::scan(
     {
         Stream::set_packet_action_to_hold(p);
         rtsi_stats.hold_requests++;
+    }
+    else if ( strncmp((const char*)data, "<no_ack>", 8) == 0 )
+    {
+        Stream::set_no_ack_mode(p->flow, true);
+        LogMessage("rt_service: turn on no_ack mode\n");
+    }
+    else if ( strncmp((const char*)data, "</no_ack>", 9) == 0 )
+    {
+        Stream::set_no_ack_mode(p->flow, false);
+        LogMessage("rt_service: turn off no_ack mode\n");
     }
 
     rtsi_stats.search_requests++;
