@@ -53,52 +53,19 @@ const PegInfo fp_pegs[] =
 };
 
 //-------------------------------------------------------------------------
-// Handler for finalize packet event.
-//-------------------------------------------------------------------------
-
-class FinalizePacketHandler : public DataHandler
-{
-public:
-    FinalizePacketHandler() : DataHandler(s_name)
-    { }
-
-    void handle(DataEvent&, Flow*) override;
-
-private:
-};
-
-void FinalizePacketHandler::handle(DataEvent& event, Flow*)
-{
-    FinalizePacketEvent* fp_event = (FinalizePacketEvent*)&event;
-    const Packet* pkt = fp_event->get_packet();
-    DAQ_Verdict& verdict = fp_event->get_verdict();
-    if ( modify_verdict != MAX_DAQ_VERDICT )
-    {
-        LogMessage("FinalizePacketHandler::handle: changed verdict for packet " STDu64
-            ", len %u. Verdict changed from %d to %d.\n",
-            pkt->context->packet_number, pkt->pktlen, verdict, modify_verdict);
-        verdict = modify_verdict;
-        modify_verdict = MAX_DAQ_VERDICT;
-    }
-    fp_stats.events++;
-    LogMessage("FinalizePacketHandler::handle: received event " STDu64
-        " for packet " STDu64 ", len %u. Verdict is %d.\n",
-        fp_stats.events, pkt->context->packet_number, pkt->pktlen, verdict);
-}
-
-//-------------------------------------------------------------------------
 // inspector stuff
 //-------------------------------------------------------------------------
 
 class FinalizePacket : public Inspector
 {
 public:
-    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict)
+    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict, bool wiz)
     {
         start_pdu = start;
         end_pdu = end;
         modify_pdu = modify;
         new_verdict = verdict;
+        switch_to_wizard = wiz;
     }
 
     void show(SnortConfig*) override;
@@ -124,18 +91,62 @@ public:
     StreamSplitter* get_splitter(bool c2s) override
     { return new FinalizePacketSplitter(c2s); }
 
-    bool configure(SnortConfig*) override
-    {
-        DataBus::subscribe(FINALIZE_PACKET_EVENT, new FinalizePacketHandler());
-        return true;
-    }
-
+    bool configure(SnortConfig*) override;
+    bool need_to_switch_wizard() { return switch_to_wizard; }
 private:
     uint32_t start_pdu;
     uint32_t end_pdu;
     uint32_t modify_pdu;
     DAQ_Verdict new_verdict;
+    bool switch_to_wizard;
 };
+
+//-------------------------------------------------------------------------
+// Handler for finalize packet event.
+//-------------------------------------------------------------------------
+class FinalizePacketHandler : public DataHandler
+{
+public:
+    FinalizePacketHandler(FinalizePacket& p) : DataHandler(s_name), fin_packet(p)
+    { }
+
+    void handle(DataEvent&, Flow*) override;
+
+private:
+    FinalizePacket& fin_packet;
+};
+
+void FinalizePacketHandler::handle(DataEvent& event, Flow*)
+{
+    FinalizePacketEvent* fp_event = (FinalizePacketEvent*)&event;
+    const Packet* pkt = fp_event->get_packet();
+    DAQ_Verdict& verdict = fp_event->get_verdict();
+    if ( modify_verdict != MAX_DAQ_VERDICT )
+    {
+        LogMessage("FinalizePacketHandler::handle: changed verdict for packet " STDu64
+            ", len %u. Verdict changed from %d to %d.\n",
+            pkt->context->packet_number, pkt->pktlen, verdict, modify_verdict);
+        verdict = modify_verdict;
+        modify_verdict = MAX_DAQ_VERDICT;
+    }
+    fp_stats.events++;
+    LogMessage("FinalizePacketHandler::handle: received event " STDu64
+        " for packet " STDu64 ", len %u. Verdict is %d.\n",
+        fp_stats.events, pkt->context->packet_number, pkt->pktlen, verdict);
+    if (fin_packet.need_to_switch_wizard())
+    {
+        pkt->flow->trigger_finalize_event = false;
+        LogMessage("FinalizePacketHandler::handle: switching to wizard\n");
+        // FIXIT-L remove const_cast by removing the const from event->get_packet()
+        pkt->flow->set_service(const_cast<Packet*> (pkt), nullptr);
+    }
+}
+
+bool FinalizePacket::configure(SnortConfig*)
+{
+    DataBus::subscribe(FINALIZE_PACKET_EVENT, new FinalizePacketHandler(*this));
+    return true;
+}
 
 void FinalizePacket::show(SnortConfig*)
 {
@@ -144,6 +155,7 @@ void FinalizePacket::show(SnortConfig*)
     LogMessage("    end: %u\n", end_pdu);
     LogMessage("    modify: %u\n", modify_pdu);
     LogMessage("    verdict: %d\n", new_verdict);
+    LogMessage("    switch to wizard: %s\n", switch_to_wizard ? "true" : "false" );
 }
 
 //-------------------------------------------------------------------------
@@ -173,6 +185,9 @@ static const Parameter fp_params[] =
     { "modify", Parameter::PT_TABLE, modify_params, nullptr,
       "Modify verdict in finalize event" },
 
+    { "switch_to_wizard", Parameter::PT_BOOL, nullptr, "false",
+      "switch to wizard on first finalize event" },
+
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
@@ -199,6 +214,7 @@ public:
     uint32_t end_pdu;
     uint32_t modify_pdu;
     DAQ_Verdict new_verdict;
+    bool switch_to_wizard;
 };
 
 bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
@@ -207,6 +223,7 @@ bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
     end_pdu = 0;
     modify_pdu = 0;
     new_verdict = MAX_DAQ_VERDICT;
+    switch_to_wizard = false;
     return true;
 }
 
@@ -223,6 +240,9 @@ bool FinalizePacketModule::set(const char*, Value& v, SnortConfig*)
 
     else if ( v.is("verdict") )
         new_verdict = (DAQ_Verdict)v.get_uint8();
+
+    else if ( v.is("switch_to_wizard") )
+        switch_to_wizard = v.get_bool();
     else
         return false;
 
@@ -242,7 +262,8 @@ static void mod_dtor(Module* m)
 static Inspector* fp_ctor(Module* m)
 {
     FinalizePacketModule* mod = (FinalizePacketModule*)m;
-    return new FinalizePacket(mod->start_pdu, mod->end_pdu, mod->modify_pdu, mod->new_verdict);
+    return new FinalizePacket(mod->start_pdu, mod->end_pdu, mod->modify_pdu, mod->new_verdict,
+        mod->switch_to_wizard);
 }
 
 static void fp_dtor(Inspector* p)
