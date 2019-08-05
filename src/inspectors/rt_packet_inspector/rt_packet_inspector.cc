@@ -53,8 +53,11 @@ THREAD_LOCAL RtPacketInspectorStats rtpi_stats;
 
 static const Parameter rtpi_params[] =
 {
-    { "test_daq_retry", Parameter::PT_BOOL, nullptr, "true",
-        "test daq packet retry feature" },
+    { "retry_targeted", Parameter::PT_BOOL, nullptr, "false",
+        "request retry for packets whose data starts with 'A'" },
+
+    { "retry_all", Parameter::PT_BOOL, nullptr, "false",
+        "request retry for all non-retry packets" },
 
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
@@ -73,16 +76,20 @@ public:
 
     bool set(const char*, Value& v, SnortConfig*) override;
 
-    bool is_test_daq_retry() { return test_daq_retry; }
+    bool is_retry_targeted() { return retry_targeted; }
+    bool is_retry_all() { return retry_all; }
 
 public:
-    bool test_daq_retry = true;
+    bool retry_targeted = false;
+    bool retry_all = false;
 };
 
 bool RtPacketInspectorModule::set(const char*, Value& v, SnortConfig*)
 {
-    if ( v.is("test_daq_retry") )
-        test_daq_retry = v.get_bool();
+    if ( v.is("retry_targeted") )
+        retry_targeted = v.get_bool();
+    else if ( v.is("retry_all") )
+        retry_all = v.get_bool();
     else
         return false;
 
@@ -197,20 +204,21 @@ public:
     }
 
 private:
-    bool test_daq_retry;
-    void do_daq_packet_retry_test(Packet* p);
+    bool retry_targeted;
+    bool retry_all;
+    void do_packet_retry_test(Packet* p);
 };
 
 RtPacketInspector::RtPacketInspector(RtPacketInspectorModule* mod)
 {
-    test_daq_retry = mod->is_test_daq_retry();
+    retry_targeted = mod->is_retry_targeted();
+    retry_all = mod->is_retry_all();
     rtpi_stats.total_packets = 0;
 }
 
 void RtPacketInspector::eval(Packet* p)
 {
-    if ( test_daq_retry )
-        do_daq_packet_retry_test(p);
+    do_packet_retry_test(p);
 
     rtpi_stats.total_packets++;
 }
@@ -220,31 +228,17 @@ void RtPacketInspector::show(SnortConfig*)
     LogMessage("%s config:\n", s_name);
 }
 
-void RtPacketInspector::do_daq_packet_retry_test(Packet* p)
+void RtPacketInspector::do_packet_retry_test(Packet* p)
 {
-    if (p->dsize)
+    if (retry_all || (retry_targeted && p->dsize && p->data[0] == 'A'))
     {
-        if (p->data[0] == 'A')
+        if (!p->is_retry())
         {
-            static bool retry_packet = true;
-            static bool expect_retry_packet = false;
-
-            if (retry_packet)
-            {
-                p->active->daq_retry_packet(p);
-                retry_packet = false;
-                expect_retry_packet = true;
-                rtpi_stats.retry_requests++;
-            }
-            else if (expect_retry_packet)
-            {
-                if ( p->is_retry() )
-                {
-                    expect_retry_packet = false;
-                    rtpi_stats.retry_packets++;
-                }
-            }
+            p->active->retry_packet(p);
+            rtpi_stats.retry_requests++;
         }
+        else
+            rtpi_stats.retry_packets++;
     }
 }
 
@@ -283,7 +277,7 @@ static const InspectApi rtpi_api
         mod_dtor
     },
     IT_PACKET,
-    PROTO_BIT__ANY_PDU,
+    PROTO_BIT__ANY_IP,
     nullptr, // buffers
     s_name,  // service
     reg_test_init, // pinit
