@@ -47,7 +47,7 @@ THREAD_LOCAL RtServiceInspectorStats rtsi_stats;
 
 static const Parameter rtsi_params[] =
 {
-    { "memcap", Parameter::PT_INT, nullptr, nullptr, nullptr },
+    { "memcap", Parameter::PT_INT, nullptr, nullptr, "cap on amount of memory used" },
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
