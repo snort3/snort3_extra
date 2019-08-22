@@ -17,20 +17,18 @@
 //--------------------------------------------------------------------------
 // rt_packet_inspector.h author davis mcpherson <davmcphe@cisco.com>
 
-#ifndef RT_PACKET_INSPECTOR_H
-#define RT_PACKET_INSPECTOR_H
+#ifndef RT_GLOBAL_INSPECTOR_H
+#define RT_GLOBAL_INSPECTOR_H
 
 #include <framework/counts.h>
 #include <main/thread.h>
 
-struct RtPacketInspectorStats
+struct RtGlobalInspectorStats
 {
     PegCount total_packets;
-    PegCount retry_requests;
-    PegCount retry_packets;
 };
 
-extern THREAD_LOCAL RtPacketInspectorStats rtpi_stats;
+extern THREAD_LOCAL RtGlobalInspectorStats rtgi_stats;
 
 #endif
 

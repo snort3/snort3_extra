@@ -24,6 +24,7 @@
 #include "framework/module.h"
 #include "log/messages.h"
 #include "main/snort_config.h"
+
 #include "rt_service_inspector_splitter.h"
 
 using namespace snort;
@@ -47,72 +48,20 @@ THREAD_LOCAL RtServiceInspectorStats rtsi_stats;
 
 static const Parameter rtsi_params[] =
 {
-    { "memcap", Parameter::PT_INT, nullptr, nullptr, "cap on amount of memory used" },
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
-};
-
-class RtServiceInspectorMemcapManager : public ReloadMemcapManager
-{
-public:
-    bool tune_memcap() override
-    {
-        LogMessage("Tune memcap called\n");
-        return true;
-    }
-
-    bool tune_memcap_idle() override
-    {
-        LogMessage("Tune memcap called\n");
-        return true;
-    }
 };
 
 class RtServiceInspectorModule : public Module
 {
 public:
-    RtServiceInspectorModule() : Module(s_name, s_help, rtsi_params)
-    {
-        reload_memcap_manager = new RtServiceInspectorMemcapManager(); 
-    }
-
-    ~RtServiceInspectorModule() override
-    {
-        delete reload_memcap_manager;  //= new RtServiceInspectorMemcapManager(); 
-    }
+    RtServiceInspectorModule() : Module(s_name, s_help, rtsi_params) { }
 
     const PegInfo* get_pegs() const override
     { return rtsi_pegs; }
 
     PegCount* get_counts() const override
     { return (PegCount*)&rtsi_stats; }
-
-    bool set(const char*, Value& v, SnortConfig*) override;
-    bool end(const char*, int, SnortConfig*) override;
-private:
-    RtServiceInspectorMemcapManager *reload_memcap_manager;
-    bool is_memcap_changed = false;
-    uint64_t memcap;
 };
-
-bool RtServiceInspectorModule::set(const char*, Value& v, SnortConfig*)
-{
-    if (v.is("memcap"))
-    {
-        uint64_t new_memcap = v.get_uint64();
-        if (new_memcap != memcap)
-            is_memcap_changed = true;
-        memcap = new_memcap;
-    } else
-        return false;
-    return true;
-}
-
-bool RtServiceInspectorModule::end(const char*, int, SnortConfig* cfg)
-{
-    if (is_memcap_changed)
-       return cfg->register_reload_memcap_manager(reload_memcap_manager);
-    return true;
-}
 
 //-------------------------------------------------------------------------
 // flow data stuff
@@ -122,6 +71,7 @@ class RtServiceInspectorFlowData : public FlowData
 public:
     RtServiceInspectorFlowData();
     ~RtServiceInspectorFlowData() override;
+
     static void init()
     { inspector_id = FlowData::create_flow_data_id(); }
 
