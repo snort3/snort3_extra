@@ -135,6 +135,7 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
         fp_stats.events, pkt->context->packet_number, pkt->pktlen, verdict);
     if (fin_packet.need_to_switch_wizard())
     {
+        pkt->flow->set_proxied();
         pkt->flow->trigger_finalize_event = false;
         LogMessage("FinalizePacketHandler::handle: switching to wizard\n");
         // FIXIT-L remove const_cast by removing the const from event->get_packet()
