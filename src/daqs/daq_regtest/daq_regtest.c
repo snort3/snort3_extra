@@ -42,6 +42,8 @@
 #define CALL_SUBAPI(ctxt, fname, ...) \
     ctxt->subapi.fname.func(ctxt->subapi.fname.context, __VA_ARGS__)
 
+#define REGTEST_DAQ_MSG_OTHER (LAST_BUILTIN_DAQ_MSG_TYPE + 100)
+
 typedef struct
 {
     char* buf;
@@ -59,6 +61,8 @@ typedef struct
     unsigned trace;
     uint32_t caps_cfg;
     bool ignore_vlan;
+    unsigned other_message;
+    DAQ_Msg_t other_msg;
 
     /* State */
     FILE* debug_fh;
@@ -72,6 +76,7 @@ static DAQ_VariableDesc_t regtest_variable_descriptions[] =
     { "trace", "Number of packets to set the trace enabled flag on", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
     { "caps", "DAQ module capabilities to report (in hex)", DAQ_VAR_DESC_REQUIRES_ARGUMENT },
     { "ignore_vlan", "Set ignore_vlan flag to packet header", DAQ_VAR_DESC_FORBIDS_ARGUMENT },
+    { "other_message", "Generate other message type after this packet", DAQ_VAR_DESC_REQUIRES_ARGUMENT},
 };
 
 DAQ_BaseAPI_t daq_base_api;
@@ -203,8 +208,13 @@ static int regtest_daq_instantiate(const DAQ_ModuleConfig_h modcfg, DAQ_ModuleIn
         }
         else if (!strcmp(varKey, "ignore_vlan"))
             rtc->ignore_vlan = true;
+        else if (!strcmp(varKey, "other_message"))
+            rtc->other_message = strtoul(varValue, NULL, 10);
         daq_base_api.config_next_variable(modcfg, &varKey, &varValue);
     }
+
+    rtc->other_msg.owner = modinst;
+    rtc->other_msg.type = (DAQ_MsgType)REGTEST_DAQ_MSG_OTHER;
 
     rtc->debug_fh = fopen(REGTEST_DEBUG_FILE, "w");
 
@@ -308,7 +318,33 @@ static int regtest_daq_config_free(void *handle, void *old_config)
 static unsigned regtest_daq_msg_receive(void *handle, const unsigned max_recv, const DAQ_Msg_t *msgs[], DAQ_RecvStatus *rstat)
 {
     RegTestContext* rtc = (RegTestContext*) handle;
-    unsigned num_receive = CALL_SUBAPI(rtc, msg_receive, max_recv, msgs, rstat);
+
+    unsigned my_max_recv = max_recv;
+    if (rtc->other_message > 0 && rtc->other_message <= max_recv)
+        my_max_recv--;
+    unsigned num_receive = CALL_SUBAPI(rtc, msg_receive, my_max_recv, msgs, rstat);
+
+    if (rtc->other_message > 0)
+    {
+        unsigned idx;
+        if (rtc->other_message >= num_receive)
+        {
+            rtc->other_message -= num_receive;
+            idx = num_receive;
+        }
+        else
+        {
+            idx = rtc->other_message;
+            rtc->other_message = 0;
+        }
+        if (rtc->other_message == 0)
+        {
+            for (unsigned i = num_receive; i > idx; i--)
+                msgs[i] = msgs[i-1];
+            msgs[idx] = &rtc->other_msg;
+            num_receive++;
+        }
+    }
 
     if (rtc->trace > 0)
     {
@@ -343,6 +379,15 @@ static unsigned regtest_daq_msg_receive(void *handle, const unsigned max_recv, c
     return num_receive;
 }
 
+static int regtest_daq_msg_finalize(void *handle, const DAQ_Msg_t *msg, DAQ_Verdict verdict)
+{
+    RegTestContext* rtc = (RegTestContext*) handle;
+
+    if (msg->owner == rtc->modinst)
+        return DAQ_SUCCESS;
+
+    return CALL_SUBAPI(rtc, msg_finalize, msg, verdict);
+}
 
 //-------------------------------------------------------------------------
 
@@ -374,6 +419,6 @@ DAQ_SO_PUBLIC DAQ_ModuleAPI_t DAQ_MODULE_DATA =
     /* .config_swap = */ regtest_daq_config_swap,
     /* .config_free = */ regtest_daq_config_free,
     /* .msg_receive = */ regtest_daq_msg_receive,
-    /* .msg_finalize = */ NULL,
+    /* .msg_finalize = */ regtest_daq_msg_finalize,
     /* .get_msg_pool_info = */ NULL,
 };

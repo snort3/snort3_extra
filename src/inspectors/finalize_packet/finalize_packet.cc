@@ -17,6 +17,7 @@
 //--------------------------------------------------------------------------
 // finalize_packet.cc author Steve Chew <stechew@sourcefire.com>
 
+#include <daq.h>
 #include <ctime>
 
 #include "detection/ips_context.h"
@@ -27,6 +28,7 @@
 #include "log/messages.h"
 #include "protocols/packet.h"
 #include "pub_sub/finalize_packet_event.h"
+#include "pub_sub/other_message_event.h"
 
 #include "finalize_packet_splitter.h"
 
@@ -39,6 +41,7 @@ struct FinalizePacketStats
 {
     PegCount pdus;
     PegCount events;
+    PegCount other_messages;
 };
 
 static THREAD_LOCAL FinalizePacketStats fp_stats;
@@ -48,6 +51,7 @@ const PegInfo fp_pegs[] =
 {
     { CountType::SUM, "pdus", "total PDUs seen" },
     { CountType::SUM, "events", "total events seen" },
+    { CountType::SUM, "other_messages", "total other message seen" },
 
     { CountType::END, nullptr, nullptr }
 };
@@ -143,9 +147,34 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
     }
 }
 
+//-------------------------------------------------------------------------
+// Handler for other message event.
+//-------------------------------------------------------------------------
+class OtherMessageHandler : public DataHandler
+{
+public:
+    OtherMessageHandler() : DataHandler(s_name)
+    { }
+
+    void handle(DataEvent&, Flow*) override;
+};
+
+void OtherMessageHandler::handle(DataEvent& event, Flow*)
+{
+    OtherMessageEvent* other_event = (OtherMessageEvent*)&event;
+    DAQ_Msg_h daq_msg = other_event->get_daq_msg();
+    DAQ_Verdict& verdict = other_event->get_verdict();
+
+    verdict = DAQ_VERDICT_IGNORE;
+    fp_stats.other_messages++;
+    LogMessage("OtherMessageHandler::handle: received other DAQ message, type = %d\n",
+        daq_msg_get_type(daq_msg));
+}
+
 bool FinalizePacket::configure(SnortConfig*)
 {
     DataBus::subscribe(FINALIZE_PACKET_EVENT, new FinalizePacketHandler(*this));
+    DataBus::subscribe(OTHER_MESSAGE_EVENT, new OtherMessageHandler());
     return true;
 }
 
