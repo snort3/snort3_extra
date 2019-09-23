@@ -129,6 +129,7 @@ public:
     RtGlobalInspector(const RtGlobalModuleConfig*);
 
     void eval(Packet*) override;
+    void show(SnortConfig*) override;
 
 public:
     RtGlobalModuleConfig config;
@@ -138,7 +139,15 @@ RtGlobalInspector::RtGlobalInspector(const RtGlobalModuleConfig* c)
 { config = *c; }
 
 void RtGlobalInspector::eval(Packet*)
-{ }
+{
+    rtgi_stats.total_packets++;
+}
+
+void RtGlobalInspector::show(SnortConfig*)
+{
+    LogMessage("%s config:\n", s_name);
+    LogMessage("    memcap: %" PRIu64 "\n", config.memcap);
+}
 
 //-------------------------------------------------------------------------
 // api stuff
@@ -175,10 +184,10 @@ static const InspectApi rtgi_api =
         mod_ctor,
         mod_dtor
     },
-    IT_STREAM,
-    PROTO_BIT__ANY_SSN,
+    IT_SERVICE,
+    PROTO_BIT__PDU,
     nullptr, // buffers
-    nullptr, // service
+    s_name, // service
     nullptr, // init
     nullptr, // term
     nullptr, // tinit
