@@ -27,8 +27,8 @@
 #include "framework/module.h"
 #include "log/messages.h"
 #include "protocols/packet.h"
+#include "pub_sub/daq_message_event.h"
 #include "pub_sub/finalize_packet_event.h"
-#include "pub_sub/other_message_event.h"
 
 #include "finalize_packet_splitter.h"
 
@@ -161,20 +161,17 @@ public:
 
 void OtherMessageHandler::handle(DataEvent& event, Flow*)
 {
-    OtherMessageEvent* other_event = (OtherMessageEvent*)&event;
-    DAQ_Msg_h daq_msg = other_event->get_daq_msg();
-    DAQ_Verdict& verdict = other_event->get_verdict();
+    DaqMessageEvent* dme = (DaqMessageEvent*)&event;
 
-    verdict = DAQ_VERDICT_IGNORE;
+    dme->set_verdict(DAQ_VERDICT_IGNORE);
     fp_stats.other_messages++;
-    LogMessage("OtherMessageHandler::handle: received other DAQ message, type = %d\n",
-        daq_msg_get_type(daq_msg));
+    LogMessage("OtherMessageHandler::handle: received other DAQ message, type = %d\n", dme->get_type());
 }
 
 bool FinalizePacket::configure(SnortConfig*)
 {
     DataBus::subscribe(FINALIZE_PACKET_EVENT, new FinalizePacketHandler(*this));
-    DataBus::subscribe(OTHER_MESSAGE_EVENT, new OtherMessageHandler());
+    DataBus::subscribe(DAQ_OTHER_MSG_EVENT, new OtherMessageHandler());
     return true;
 }
 
