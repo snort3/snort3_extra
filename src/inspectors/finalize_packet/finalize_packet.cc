@@ -136,7 +136,7 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
     fp_stats.events++;
     LogMessage("FinalizePacketHandler::handle: received event " STDu64
         " for packet " STDu64 ", len %u. Verdict is %d.\n",
-        fp_stats.events, pkt->context->packet_number, pkt->pktlen, verdict);
+        fp_stats.events, pkt->context->packet_number, pkt->pkth->pktlen, verdict);
     if (fin_packet.need_to_switch_wizard())
     {
         pkt->flow->set_proxied();
