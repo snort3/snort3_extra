@@ -55,17 +55,24 @@ static const Parameter rtpi_params[] =
 class RtGlobalReloadTuner : public ReloadResourceTuner
 {
 public:
-    bool tune_resources() override
+    bool tune_packet_context() override
     {
         LogMessage("Reg Test Global module per packet configuration reload resource tuning complete\n");
         return true;
     }
 
-    bool tune_resources_idle() override
+    bool tune_idle_context() override
     {
         LogMessage("Reg Test Global module idle configuration reload resource tuning complete\n");
         return true;
     }
+
+private:
+    bool tune_resources(unsigned) override
+    {
+        return true;
+    }
+
 };
 
 struct RtGlobalModuleConfig
