@@ -19,6 +19,7 @@
 
 #include "rt_global_inspector.h"
 
+#include <cstdint>
 #include <ctime>
 
 #include "flow/flow.h"
@@ -27,6 +28,7 @@
 #include "log/messages.h"
 #include "main/snort_config.h"
 #include "time/packet_time.h"
+#include "utils/util.h"
 #include "utils/util_cstring.h"
 
 using namespace snort;
@@ -52,32 +54,60 @@ static const Parameter rtpi_params[] =
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
+struct RtGlobalModuleConfig
+{
+    uint64_t memcap = 0;
+};
+
+struct RtgiCache
+{
+    uint64_t memcap = 0;
+    uint8_t* rtgi_memory = nullptr;
+};
+THREAD_LOCAL RtgiCache* rtgi_cache = nullptr;
+
 class RtGlobalReloadTuner : public ReloadResourceTuner
 {
 public:
+
+    void initialize(RtGlobalModuleConfig& config_)
+    { config = config_; }
+
+    bool tinit() override
+    {
+        if (rtgi_cache->memcap != config.memcap)
+            return true;
+        else
+            return false;
+    }
+
     bool tune_packet_context() override
     {
         LogMessage("Reg Test Global module per packet configuration reload resource tuning complete\n");
+        tune_resources(max_work);
         return true;
     }
 
     bool tune_idle_context() override
     {
         LogMessage("Reg Test Global module idle configuration reload resource tuning complete\n");
+        tune_resources(max_work_idle);
         return true;
     }
 
 private:
-    bool tune_resources(unsigned) override
+    bool tune_resources(unsigned work_limit)
     {
+        if ( work_limit-- )
+        {
+            snort_free(rtgi_cache->rtgi_memory);
+            rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(config.memcap);
+        }
+
         return true;
     }
 
-};
-
-struct RtGlobalModuleConfig
-{
-    uint64_t memcap;
+    RtGlobalModuleConfig config;
 };
 
 class RtGlobalModule : public Module
@@ -118,11 +148,8 @@ bool RtGlobalModule::set(const char*, Value& v, SnortConfig*)
 
 bool RtGlobalModule::end(const char*, int, SnortConfig* sc)
 {
-    static RtGlobalModuleConfig saved_config = {};
-    if (saved_config.memcap != 0  && saved_config.memcap != config.memcap)
-        sc->register_reload_resource_tuner(rtgi_reload_tuner);
-
-    saved_config = config;
+    rtgi_reload_tuner.initialize(config);
+    sc->register_reload_resource_tuner(rtgi_reload_tuner);
     return true;
 }
 
@@ -137,6 +164,8 @@ public:
 
     void eval(Packet*) override;
     void show(SnortConfig*) override;
+    void tinit() override;
+    void tterm() override;
 
 public:
     RtGlobalModuleConfig config;
@@ -144,6 +173,19 @@ public:
 
 RtGlobalInspector::RtGlobalInspector(const RtGlobalModuleConfig* c)
 { config = *c; }
+
+void RtGlobalInspector::tinit()
+{
+    rtgi_cache = new RtgiCache;
+    rtgi_cache->memcap = config.memcap;
+    rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(config.memcap);
+}
+
+void RtGlobalInspector::tterm()
+{
+    snort_free(rtgi_cache->rtgi_memory);
+    delete rtgi_cache;
+}
 
 void RtGlobalInspector::eval(Packet*)
 {
