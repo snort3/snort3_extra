@@ -52,8 +52,8 @@ using namespace std;
 class ThirdPartyAppIDModuleImpl : public ThirdPartyAppIDModule
 {
 public:
-    ThirdPartyAppIDModuleImpl(uint32_t ver, const char* mname)
-        : ThirdPartyAppIDModule(ver, mname)
+    ThirdPartyAppIDModuleImpl(uint32_t ver, const char* mname, ThirdPartyConfig& config)
+        : ThirdPartyAppIDModule(ver, mname, config)
     {
         cerr << WhereMacro << endl;
     }
@@ -63,43 +63,21 @@ public:
         cerr << WhereMacro << endl;
     }
 
-    int pinit(ThirdPartyConfig&) override
-    {
-        cerr << WhereMacro
-             << ": main thread initialization, possibly load other libraries." << endl;
-        return 0;
-    }
-
     int tinit() override
     {
         stringstream msg;
-        msg << WhereMacro << ": per worker thread initialization." << endl;
+        msg << WhereMacro << ": per worker thread context initialization." << endl;
         cerr << msg.str();
-        return 0;
-    }
-
-    int reconfigure(const ThirdPartyConfig&) override
-    {
-        cerr << WhereMacro << ": do not call pinit() during reconfigure." << endl;
-        return 0;
-    }
-
-    int pfini() override
-    {
-        cerr << WhereMacro << ": main thread clean-up." << endl;
         return 0;
     }
 
     int tfini() override
     {
         stringstream msg;
-        msg << WhereMacro << ": per worker-thread clean-up." << endl;
+        msg << WhereMacro << ": per worker-thread context clean-up." << endl;
         cerr << msg.str();
         return 0;
     }
-
-    int print_stats() override { return 0; }
-    int reset_stats() override { return 0; }
 };
 
 class ThirdPartyAppIDSessionImpl : public ThirdPartyAppIDSession
@@ -107,8 +85,14 @@ class ThirdPartyAppIDSessionImpl : public ThirdPartyAppIDSession
 public:
 
     bool reset() override { return 1; }
-    TPState process(
-        const snort::Packet&, AppidSessionDirection, vector<AppId>&,
+    void delete_with_ctxt() override { delete this; }
+
+    ThirdPartyAppIDSessionImpl(ThirdPartyAppIDModule& ctxt)
+        : ThirdPartyAppIDSession(ctxt)
+    {
+    }
+
+    TPState process(const snort::Packet&, AppidSessionDirection, vector<AppId>&,
         ThirdPartyAppIDAttributeData&) override
     {
         stringstream msg;
@@ -135,16 +119,27 @@ private:
 // once the .so has been loaded.
 extern "C"
 {
-    SO_PUBLIC ThirdPartyAppIDModuleImpl* create_third_party_appid_module()
+    SO_PUBLIC ThirdPartyAppIDModuleImpl* tp_appid_create_ctxt(ThirdPartyConfig& cfg)
     {
-        return new ThirdPartyAppIDModuleImpl(1,"third party");
+        return new ThirdPartyAppIDModuleImpl(2,"third party", cfg);
     }
-}
 
-extern "C"
-{
-    SO_PUBLIC ThirdPartyAppIDSessionImpl* create_third_party_appid_session()
+    SO_PUBLIC ThirdPartyAppIDSessionImpl* tp_appid_create_session(ThirdPartyAppIDModule& ctxt)
     {
-        return new ThirdPartyAppIDSessionImpl;
+        return new ThirdPartyAppIDSessionImpl(ctxt);
+    }
+
+    SO_PUBLIC int tp_appid_pfini()
+    {
+        cerr << WhereMacro << ": main thread clean-up." << endl;
+	return 0;
+    }
+
+    SO_PUBLIC int tp_appid_tfini()
+    {
+        stringstream msg;
+        msg << WhereMacro << ": per worker-thread clean-up." << endl;
+        cerr << msg.str();
+        return 0;
     }
 }
