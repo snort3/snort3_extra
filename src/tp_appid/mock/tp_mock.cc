@@ -22,10 +22,10 @@
 // detection.
 // Snort interacts with this library via 3 classes:
 // 1) TPLibHandler - to load the third party library.
-// 2) ThirdPartyAppIDModule - to initialize and clean-up whatever we might need
-// 3) ThirdPartyAppIDSession - for the actual information extracted from packets
+// 2) ThirdPartyAppIdContext - to initialize and clean-up whatever we might need
+// 3) ThirdPartyAppIdSession - for the actual information extracted from packets
 // The third party library must provide implementations to the abstract classes
-// ThirdPartyAppIDModule and ThirdPartyAppIDSession and must also implement the
+// ThirdPartyAppIdContext and ThirdPartyAppIdSession and must also implement the
 // object factory functions returning pointers to the derived classes.
 //
 //
@@ -49,16 +49,16 @@
 
 using namespace std;
 
-class ThirdPartyAppIDModuleImpl : public ThirdPartyAppIDModule
+class ThirdPartyAppIdContextImpl : public ThirdPartyAppIdContext
 {
 public:
-    ThirdPartyAppIDModuleImpl(uint32_t ver, const char* mname, ThirdPartyConfig& config)
-        : ThirdPartyAppIDModule(ver, mname, config)
+    ThirdPartyAppIdContextImpl(uint32_t ver, const char* mname, ThirdPartyConfig& config)
+        : ThirdPartyAppIdContext(ver, mname, config)
     {
         cerr << WhereMacro << endl;
     }
 
-    ~ThirdPartyAppIDModuleImpl()
+    ~ThirdPartyAppIdContextImpl()
     {
         cerr << WhereMacro << endl;
     }
@@ -80,15 +80,15 @@ public:
     }
 };
 
-class ThirdPartyAppIDSessionImpl : public ThirdPartyAppIDSession
+class ThirdPartyAppIdSessionImpl : public ThirdPartyAppIdSession
 {
 public:
 
     bool reset() override { return 1; }
     void delete_with_ctxt() override { delete this; }
 
-    ThirdPartyAppIDSessionImpl(ThirdPartyAppIDModule& ctxt)
-        : ThirdPartyAppIDSession(ctxt)
+    ThirdPartyAppIdSessionImpl(ThirdPartyAppIdContext& ctxt)
+        : ThirdPartyAppIdSession(ctxt)
     {
     }
 
@@ -119,20 +119,20 @@ private:
 // once the .so has been loaded.
 extern "C"
 {
-    SO_PUBLIC ThirdPartyAppIDModuleImpl* tp_appid_create_ctxt(ThirdPartyConfig& cfg)
+    SO_PUBLIC ThirdPartyAppIdContextImpl* tp_appid_create_ctxt(ThirdPartyConfig& cfg)
     {
-        return new ThirdPartyAppIDModuleImpl(2,"third party", cfg);
+        return new ThirdPartyAppIdContextImpl(3,"third party", cfg);
     }
 
-    SO_PUBLIC ThirdPartyAppIDSessionImpl* tp_appid_create_session(ThirdPartyAppIDModule& ctxt)
+    SO_PUBLIC ThirdPartyAppIdSessionImpl* tp_appid_create_session(ThirdPartyAppIdContext& ctxt)
     {
-        return new ThirdPartyAppIDSessionImpl(ctxt);
+        return new ThirdPartyAppIdSessionImpl(ctxt);
     }
 
     SO_PUBLIC int tp_appid_pfini()
     {
         cerr << WhereMacro << ": main thread clean-up." << endl;
-	return 0;
+        return 0;
     }
 
     SO_PUBLIC int tp_appid_tfini()
