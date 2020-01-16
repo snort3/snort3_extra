@@ -58,7 +58,7 @@ public:
         cerr << WhereMacro << endl;
     }
 
-    ~ThirdPartyAppIdContextImpl()
+    ~ThirdPartyAppIdContextImpl() override
     {
         cerr << WhereMacro << endl;
     }
@@ -87,8 +87,8 @@ public:
     bool reset() override { return 1; }
     void delete_with_ctxt() override { delete this; }
 
-    ThirdPartyAppIdSessionImpl(ThirdPartyAppIdContext& ctxt)
-        : ThirdPartyAppIdSession(ctxt)
+    ThirdPartyAppIdSessionImpl(ThirdPartyAppIdContext& tp_ctxt)
+        : ThirdPartyAppIdSession(tp_ctxt)
     {
     }
 
@@ -119,6 +119,11 @@ private:
 // once the .so has been loaded.
 extern "C"
 {
+    SO_PUBLIC ThirdPartyAppIdContextImpl* tp_appid_create_ctxt(ThirdPartyConfig&);
+    SO_PUBLIC ThirdPartyAppIdSessionImpl* tp_appid_create_session(ThirdPartyAppIdContext&);
+    SO_PUBLIC int tp_appid_pfini();
+    SO_PUBLIC int tp_appid_tfini();
+
     SO_PUBLIC ThirdPartyAppIdContextImpl* tp_appid_create_ctxt(ThirdPartyConfig& cfg)
     {
         return new ThirdPartyAppIdContextImpl(3,"third party", cfg);
