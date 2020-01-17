@@ -30,15 +30,12 @@
 //
 //
 // Standalone compilation:
-// g++ -g -Wall -I/path/to/snort3/src -c tp_mock.cc
-// g++ -std=c++11 -g -Wall -I/path/to/snort3/src -shared -fPIC -o libtp_mock.so tp_mock.cc
+// g++ -g -Wall -I/path/to/snort3/src -c tp_appid_example.cc
+// g++ -std=c++11 -g -Wall -I/path/to/snort3/src -shared -fPIC -o libtp_appid_example.so tp_appid_example.cc
 // As a module (dynamically loaded)  - see CMakeLists.txt
 
 #include <iostream>
 #include <sstream>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "main/snort_types.h"
 #include "network_inspectors/appid/tp_appid_module_api.h"
