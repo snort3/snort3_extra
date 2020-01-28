@@ -177,7 +177,6 @@ bool FinalizePacket::configure(SnortConfig*)
 
 void FinalizePacket::show(SnortConfig*)
 {
-    LogMessage("%s config:\n", s_name);
     LogMessage("    start: %u\n", start_pdu);
     LogMessage("    end: %u\n", end_pdu);
     LogMessage("    modify: %u\n", modify_pdu);

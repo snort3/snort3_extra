@@ -112,7 +112,6 @@ class RtServiceInspector : public Inspector
 public:
     RtServiceInspector(RtServiceInspectorModule* mod);
 
-    void show(SnortConfig*) override;
     void eval(Packet* p) override;
     bool configure(SnortConfig*) override
     { return true; }
@@ -128,11 +127,6 @@ RtServiceInspector::RtServiceInspector(RtServiceInspectorModule*)
 void RtServiceInspector::eval(Packet*)
 {
     rtsi_stats.total_packets++;
-}
-
-void RtServiceInspector::show(SnortConfig*)
-{
-    LogMessage("%s config:\n", s_name);
 }
 
 StreamSplitter* RtServiceInspector::get_splitter(bool to_server)

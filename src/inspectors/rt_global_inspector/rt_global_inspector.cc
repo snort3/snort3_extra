@@ -194,7 +194,6 @@ void RtGlobalInspector::eval(Packet*)
 
 void RtGlobalInspector::show(SnortConfig*)
 {
-    LogMessage("%s config:\n", s_name);
     LogMessage("    memcap: %" PRIu64 "\n", config.memcap);
 }
 

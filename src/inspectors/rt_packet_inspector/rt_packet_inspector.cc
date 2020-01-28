@@ -195,7 +195,6 @@ class RtPacketInspector : public Inspector
 public:
     RtPacketInspector(RtPacketInspectorModule* mod);
 
-    void show(SnortConfig*) override;
     void eval(Packet* p) override;
     bool configure(SnortConfig*) override
     {
@@ -221,11 +220,6 @@ void RtPacketInspector::eval(Packet* p)
     do_packet_retry_test(p);
 
     rtpi_stats.total_packets++;
-}
-
-void RtPacketInspector::show(SnortConfig*)
-{
-    LogMessage("%s config:\n", s_name);
 }
 
 void RtPacketInspector::do_packet_retry_test(Packet* p)

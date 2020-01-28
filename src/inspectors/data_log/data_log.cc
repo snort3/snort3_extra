@@ -136,7 +136,6 @@ private:
 
 void DataLog::show(SnortConfig*)
 {
-    LogMessage("%s config:\n", s_name);
     LogMessage("    key = %s\n", key.c_str());
 }
 
