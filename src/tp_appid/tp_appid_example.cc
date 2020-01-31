@@ -123,7 +123,7 @@ extern "C"
 
     SO_PUBLIC ThirdPartyAppIdContextImpl* tp_appid_create_ctxt(ThirdPartyConfig& cfg)
     {
-        return new ThirdPartyAppIdContextImpl(3,"third party", cfg);
+        return new ThirdPartyAppIdContextImpl(THIRD_PARTY_APPID_API_VERSION,"third party", cfg);
     }
 
     SO_PUBLIC ThirdPartyAppIdSessionImpl* tp_appid_create_session(ThirdPartyAppIdContext& ctxt)
