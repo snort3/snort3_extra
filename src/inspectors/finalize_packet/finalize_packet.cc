@@ -63,13 +63,14 @@ const PegInfo fp_pegs[] =
 class FinalizePacket : public Inspector
 {
 public:
-    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict, bool wiz)
+    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict, bool wiz, bool direct_inject)
     {
         start_pdu = start;
         end_pdu = end;
         modify_pdu = modify;
         new_verdict = verdict;
         switch_to_wizard = wiz;
+        use_direct_inject = direct_inject;
     }
 
     void show(SnortConfig*) override;
@@ -79,7 +80,7 @@ public:
         if(start_pdu <= fp_stats.pdus and end_pdu > fp_stats.pdus)
         {
             LogMessage("FinalizePacket::eval: enable finalize packet events.\n");
-            p->flow->trigger_finalize_event = true;
+            p->flow->flags.trigger_finalize_event = true;
             if ( modify_pdu == fp_stats.pdus )
             {
                 modify_verdict = new_verdict;
@@ -88,7 +89,7 @@ public:
         else
         {
             LogMessage("FinalizePacket::eval: disable finalize packet events.\n");
-            p->flow->trigger_finalize_event = false;
+            p->flow->flags.trigger_finalize_event = false;
         }
     }
 
@@ -97,12 +98,14 @@ public:
 
     bool configure(SnortConfig*) override;
     bool need_to_switch_wizard() { return switch_to_wizard; }
+    bool need_to_use_direct_inject() { return use_direct_inject; }
 private:
     uint32_t start_pdu;
     uint32_t end_pdu;
     uint32_t modify_pdu;
     DAQ_Verdict new_verdict;
     bool switch_to_wizard;
+    bool use_direct_inject;
 };
 
 //-------------------------------------------------------------------------
@@ -137,10 +140,17 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
     LogMessage("FinalizePacketHandler::handle: received event " STDu64
         " for packet " STDu64 ", len %u. Verdict is %d.\n",
         fp_stats.events, pkt->context->packet_number, pkt->pkth->pktlen, verdict);
+
+    if (fin_packet.need_to_use_direct_inject())
+    {
+        LogMessage("FinalizePacketHandler::handle: using ioctl to inject\n");
+        pkt->flow->flags.use_direct_inject = true;
+    }
+
     if (fin_packet.need_to_switch_wizard())
     {
         pkt->flow->set_proxied();
-        pkt->flow->trigger_finalize_event = false;
+        pkt->flow->flags.trigger_finalize_event = false;
         LogMessage("FinalizePacketHandler::handle: switching to wizard\n");
         // FIXIT-L remove const_cast by removing the const from event->get_packet()
         pkt->flow->set_service(const_cast<Packet*> (pkt), nullptr);
@@ -182,6 +192,7 @@ void FinalizePacket::show(SnortConfig*)
     LogMessage("    modify: %u\n", modify_pdu);
     LogMessage("    verdict: %d\n", new_verdict);
     LogMessage("    switch to wizard: %s\n", switch_to_wizard ? "true" : "false" );
+    LogMessage("    use ioctl to inject: %s\n", use_direct_inject ? "true" : "false" );
 }
 
 //-------------------------------------------------------------------------
@@ -212,7 +223,10 @@ static const Parameter fp_params[] =
       "Modify verdict in finalize event" },
 
     { "switch_to_wizard", Parameter::PT_BOOL, nullptr, "false",
-      "switch to wizard on first finalize event" },
+      "Switch to wizard on first finalize event" },
+
+    { "use_direct_inject", Parameter::PT_BOOL, nullptr, "false",
+      "Use ioctl to do payload and reset injects" },
 
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
@@ -241,6 +255,7 @@ public:
     uint32_t modify_pdu;
     DAQ_Verdict new_verdict;
     bool switch_to_wizard;
+    bool use_direct_inject;
 };
 
 bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
@@ -250,6 +265,7 @@ bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
     modify_pdu = 0;
     new_verdict = MAX_DAQ_VERDICT;
     switch_to_wizard = false;
+    use_direct_inject = false;
     return true;
 }
 
@@ -269,6 +285,9 @@ bool FinalizePacketModule::set(const char*, Value& v, SnortConfig*)
 
     else if ( v.is("switch_to_wizard") )
         switch_to_wizard = v.get_bool();
+
+    else if ( v.is("use_direct_inject") )
+        use_direct_inject = v.get_bool();
     else
         return false;
 
@@ -289,7 +308,7 @@ static Inspector* fp_ctor(Module* m)
 {
     FinalizePacketModule* mod = (FinalizePacketModule*)m;
     return new FinalizePacket(mod->start_pdu, mod->end_pdu, mod->modify_pdu, mod->new_verdict,
-        mod->switch_to_wizard);
+        mod->switch_to_wizard, mod->use_direct_inject);
 }
 
 static void fp_dtor(Inspector* p)
