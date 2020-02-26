@@ -39,5 +39,5 @@ target_include_directories (
 install (
     TARGETS cd_pflog
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/codecs"
+        DESTINATION "${CODEC_INSTALL_PATH}"
 )

@@ -42,5 +42,5 @@ target_include_directories (
 install (
     TARGETS lowmem
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/search_engines"
+        DESTINATION "${SEARCH_ENGINE_INSTALL_PATH}"
 )
