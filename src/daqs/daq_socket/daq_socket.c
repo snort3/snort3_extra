@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <sys/unistd.h>
+#include <unistd.h>
 
 #include <daq_module_api.h>
 #include <daq_dlt.h>
