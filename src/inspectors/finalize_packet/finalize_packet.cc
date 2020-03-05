@@ -29,6 +29,7 @@
 #include "protocols/packet.h"
 #include "pub_sub/daq_message_event.h"
 #include "pub_sub/finalize_packet_event.h"
+#include "stream/stream.h"
 
 #include "finalize_packet_splitter.h"
 
@@ -63,7 +64,7 @@ const PegInfo fp_pegs[] =
 class FinalizePacket : public Inspector
 {
 public:
-    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict, bool wiz, bool direct_inject)
+    FinalizePacket(uint32_t start, uint32_t end, uint32_t modify, DAQ_Verdict verdict, bool wiz, bool direct_inject, bool defer_wlist, bool force_wlist)
     {
         start_pdu = start;
         end_pdu = end;
@@ -71,11 +72,29 @@ public:
         new_verdict = verdict;
         switch_to_wizard = wiz;
         use_direct_inject = direct_inject;
+        defer_whitelist = defer_wlist;
+        force_whitelist = force_wlist;
     }
 
     void show(SnortConfig*) override;
     void eval(Packet* p) override
     {
+        if(!p or !p->flow)
+            return;
+
+        if(defer_whitelist)
+        {
+            p->flow->set_deferred_whitelist(WHITELIST_DEFER_ON);
+            defer_whitelist = false;    // Only turn on once.
+        }
+
+        if(force_whitelist)
+        {
+            // Only whitelist one packet.
+            p->flow->set_ignore_direction(SSN_DIR_BOTH);
+            force_whitelist = false;
+        }
+
         fp_stats.pdus++;
         if(start_pdu <= fp_stats.pdus and end_pdu > fp_stats.pdus)
         {
@@ -106,6 +125,8 @@ private:
     DAQ_Verdict new_verdict;
     bool switch_to_wizard;
     bool use_direct_inject;
+    bool defer_whitelist;
+    bool force_whitelist;
 };
 
 //-------------------------------------------------------------------------
@@ -141,14 +162,16 @@ void FinalizePacketHandler::handle(DataEvent& event, Flow*)
         " for packet " STDu64 ", len %u. Verdict is %d.\n",
         fp_stats.events, pkt->context->packet_number, pkt->pkth->pktlen, verdict);
 
-    if (fin_packet.need_to_use_direct_inject())
+    if ( fin_packet.need_to_use_direct_inject() )
     {
         LogMessage("FinalizePacketHandler::handle: using ioctl to inject\n");
         pkt->flow->flags.use_direct_inject = true;
     }
 
-    if (fin_packet.need_to_switch_wizard())
+    if ( fin_packet.need_to_switch_wizard() )
     {
+        pkt->flow->set_deferred_whitelist(WHITELIST_DEFER_DONE);
+        pkt->flow->set_ignore_direction(SSN_DIR_NONE);
         pkt->flow->set_proxied();
         pkt->flow->flags.trigger_finalize_event = false;
         LogMessage("FinalizePacketHandler::handle: switching to wizard\n");
@@ -228,6 +251,12 @@ static const Parameter fp_params[] =
     { "use_direct_inject", Parameter::PT_BOOL, nullptr, "false",
       "Use ioctl to do payload and reset injects" },
 
+    { "defer_whitelist", Parameter::PT_BOOL, nullptr, "false",
+      "Turn on defer whitelist until we switch to wizard" },
+
+    { "force_whitelist", Parameter::PT_BOOL, nullptr, "false",
+      "Set ignore direction to both so that flow will be whitelisted" },
+
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
@@ -256,6 +285,8 @@ public:
     DAQ_Verdict new_verdict;
     bool switch_to_wizard;
     bool use_direct_inject;
+    bool defer_whitelist;
+    bool force_whitelist;
 };
 
 bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
@@ -266,6 +297,8 @@ bool FinalizePacketModule::begin(const char*, int, SnortConfig*)
     new_verdict = MAX_DAQ_VERDICT;
     switch_to_wizard = false;
     use_direct_inject = false;
+    defer_whitelist = false;
+    force_whitelist = false;
     return true;
 }
 
@@ -288,6 +321,13 @@ bool FinalizePacketModule::set(const char*, Value& v, SnortConfig*)
 
     else if ( v.is("use_direct_inject") )
         use_direct_inject = v.get_bool();
+
+    else if ( v.is("defer_whitelist") )
+        defer_whitelist = v.get_bool();
+
+    else if ( v.is("force_whitelist") )
+        force_whitelist = v.get_bool();
+
     else
         return false;
 
@@ -308,7 +348,8 @@ static Inspector* fp_ctor(Module* m)
 {
     FinalizePacketModule* mod = (FinalizePacketModule*)m;
     return new FinalizePacket(mod->start_pdu, mod->end_pdu, mod->modify_pdu, mod->new_verdict,
-        mod->switch_to_wizard, mod->use_direct_inject);
+        mod->switch_to_wizard, mod->use_direct_inject, mod->defer_whitelist,
+        mod->force_whitelist);
 }
 
 static void fp_dtor(Inspector* p)
