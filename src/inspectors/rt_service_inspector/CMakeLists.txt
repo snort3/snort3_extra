@@ -1,7 +1,7 @@
 cmake_minimum_required ( VERSION 3.4.3 )
 project ( rt_service_inspector CXX )
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
@@ -15,7 +15,9 @@ pkg_search_module ( SNORT3 REQUIRED snort>=3 )
 add_library (
     rt_service_inspector MODULE
     rt_service_inspector.cc
+    rt_service_inspector.h
     rt_service_inspector_splitter.cc
+    rt_service_inspector_splitter.h
 )
 
 if ( APPLE )
