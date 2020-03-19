@@ -26,8 +26,10 @@
 
 #include <string.h>
 
+#include "framework/codec.h"
 #include "log/messages.h"
 #include "main/snort_config.h"
+#include "packet_io/active.h"
 #include "protocols/packet.h"
 #include "stream/stream.h"
 
@@ -73,7 +75,26 @@ StreamSplitter::Status RegTestSplitter::scan(
         rtsi_stats.flush_requests++;
         return FLUSH;
     }
-    else if ( strncmp((const char*)data, "hold", 4) == 0)
+    else if ( strncmp((const char*)data, "send_data_direct", 16) == 0 )
+    {
+        const char *data = "send_data_direct packet";
+        EncodeFlags flags = ENC_FLAG_RST_SRVR | ENC_FLAG_RST_CLNT;
+        p->packet_flags |= PKT_USE_DIRECT_INJECT;
+
+        p->active->send_data(p, flags, (const uint8_t*)data, strlen(data));
+
+        p->packet_flags &= ~PKT_USE_DIRECT_INJECT;
+        rtsi_stats.send_data_direct_requests++;
+    }
+    else if ( strncmp((const char*)data, "send_data", 9) == 0 )
+    {
+        const char *data = "send_data packet";
+        EncodeFlags flags = ENC_FLAG_RST_SRVR | ENC_FLAG_RST_CLNT;
+
+        p->active->send_data(p, flags, (const uint8_t*)data, strlen(data));
+        rtsi_stats.send_data_requests++;
+    }
+    else if ( strncmp((const char*)data, "hold", 4) == 0 )
     {
         Stream::set_packet_action_to_hold(p);
         rtsi_stats.hold_requests++;
