@@ -96,12 +96,12 @@ StreamSplitter::Status RegTestSplitter::scan(
     }
     else if ( strncmp((const char*)data, "hold", 4) == 0 )
     {
-        Stream::set_packet_action_to_hold(p);
+        p->active->hold_packet(p);
         rtsi_stats.hold_requests++;
     }
     else if (has_script(data, len) )
     {
-        Stream::set_packet_action_to_hold(p);
+        p->active->hold_packet(p);
         rtsi_stats.hold_requests++;
     }
     else if ( strncmp((const char*)data, "<no_ack>", 8) == 0 )
