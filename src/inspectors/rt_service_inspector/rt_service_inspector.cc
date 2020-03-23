@@ -37,6 +37,8 @@ const PegInfo rtsi_pegs[] =
     { CountType::SUM, "flush_requests", "total splitter flush requests" },
     { CountType::SUM, "hold_requests", "total splitter hold requests" },
     { CountType::SUM, "search_requests", "total splitter search requests" },
+    { CountType::SUM, "send_data_requests", "total send data via daq inject requests" },
+    { CountType::SUM, "send_data_direct_requests", "total send data via direct inject requests" },
     { CountType::END, nullptr, nullptr }
 };
 

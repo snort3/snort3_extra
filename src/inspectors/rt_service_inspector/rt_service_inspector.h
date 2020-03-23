@@ -29,6 +29,8 @@ struct RtServiceInspectorStats
     PegCount flush_requests;
     PegCount hold_requests;
     PegCount search_requests;
+    PegCount send_data_requests;
+    PegCount send_data_direct_requests;
 };
 
 extern THREAD_LOCAL RtServiceInspectorStats rtsi_stats;
