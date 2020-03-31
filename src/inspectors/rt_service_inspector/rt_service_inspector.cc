@@ -19,11 +19,14 @@
 
 #include "rt_service_inspector.h"
 
+#include "detection/ips_context.h"
 #include "flow/flow.h"
+#include "framework/data_bus.h"
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
 #include "main/snort_config.h"
+#include "protocols/packet.h"
 
 #include "rt_service_inspector_splitter.h"
 
@@ -106,6 +109,24 @@ void RtServiceInspectorFlowData::handle_expected(Packet*)
 }
 
 //-------------------------------------------------------------------------
+// Handler for detained packet event.
+//-------------------------------------------------------------------------
+class DetainedPacketHandler : public DataHandler
+{
+public:
+    DetainedPacketHandler() : DataHandler(s_name) { }
+    void handle(DataEvent& e, Flow*) override;
+};
+
+void DetainedPacketHandler::handle(DataEvent& e, Flow*)
+{
+    const Packet* pkt = e.get_packet();
+    LogMessage("DetainedPacketHandler::handle: packet " STDu64
+        " with len %u was detained.\n",
+        pkt->context->packet_number, pkt->pktlen);
+}
+
+//-------------------------------------------------------------------------
 // inspector stuff
 //-------------------------------------------------------------------------
 
@@ -116,7 +137,10 @@ public:
 
     void eval(Packet* p) override;
     bool configure(SnortConfig*) override
-    { return true; }
+    {
+        DataBus::subscribe(DETAINED_PACKET_EVENT, new DetainedPacketHandler());
+        return true;
+    }
 
     StreamSplitter* get_splitter(bool to_server) override;
 };

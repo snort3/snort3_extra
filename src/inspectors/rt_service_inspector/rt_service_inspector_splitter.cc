@@ -94,7 +94,15 @@ StreamSplitter::Status RegTestSplitter::scan(
         p->active->send_data(p, flags, (const uint8_t*)data, strlen(data));
         rtsi_stats.send_data_requests++;
     }
-    else if ( strncmp((const char*)data, "hold", 4) == 0 )
+    else if ( strncmp((const char*)data, "pre_hold", 8) == 0)
+    {
+        p->flow->flags.trigger_detained_packet_event = true;
+    }
+    else if ( strncmp((const char*)data, "post_hold", 9) == 0)
+    {
+        p->flow->flags.trigger_detained_packet_event = false;
+    }
+    else if ( strncmp((const char*)data, "hold", 4) == 0)
     {
         p->active->hold_packet(p);
         rtsi_stats.hold_requests++;
