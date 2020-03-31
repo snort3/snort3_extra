@@ -62,8 +62,8 @@ Dpx::Dpx(uint16_t p, uint16_t m)
 
 void Dpx::show(SnortConfig*)
 {
-    LogMessage("    port = %d\n", port);
-    LogMessage("    max = %d\n", max);
+    ConfigLogger::log_value("port", port);
+    ConfigLogger::log_value("max", max);
 }
 
 void Dpx::eval(Packet* p)

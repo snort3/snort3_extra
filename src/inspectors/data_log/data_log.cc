@@ -136,7 +136,8 @@ private:
 
 void DataLog::show(SnortConfig*)
 {
-    LogMessage("    key = %s\n", key.c_str());
+    ConfigLogger::log_value("key", key.c_str());
+    ConfigLogger::log_value("limit", limit / M_BYTES);
 }
 
 //-------------------------------------------------------------------------

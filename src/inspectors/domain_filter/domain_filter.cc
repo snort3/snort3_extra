@@ -202,6 +202,7 @@ class DomainFilter : public Inspector
 {
 public:
     DomainFilter(DomainList&);
+    void show(SnortConfig*) override;
     void eval(Packet*) override { }
 
 private:
@@ -215,6 +216,24 @@ DomainFilter::DomainFilter(DomainList& sv)
 
     if ( !hosts.empty() )
         DataBus::subscribe(HTTP_REQUEST_HEADER_EVENT_KEY, new HttpHandler(hosts));
+}
+
+void DomainFilter::show(SnortConfig*)
+{
+    std::string domain_list;
+
+    for (auto& host : hosts)
+    {
+        domain_list += host;
+        domain_list += " ";
+    }
+
+    if ( !domain_list.empty() )
+        domain_list.pop_back();
+    else
+        domain_list += "none";
+
+    ConfigLogger::log_list("hosts", domain_list.c_str());
 }
 
 //--------------------------------------------------------------------------
