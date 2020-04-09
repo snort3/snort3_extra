@@ -19,6 +19,7 @@
 
 #include <daq.h>
 #include <ctime>
+#include <string>
 
 #include "detection/ips_context.h"
 #include "flow/flow.h"
@@ -56,6 +57,30 @@ const PegInfo fp_pegs[] =
 
     { CountType::END, nullptr, nullptr }
 };
+
+static const char* to_string(DAQ_Verdict v)
+{
+    switch (v)
+    {
+    case DAQ_VERDICT_PASS:
+        return "pass";
+    case DAQ_VERDICT_BLOCK:
+        return "block";
+    case DAQ_VERDICT_REPLACE:
+        return "replace";
+    case DAQ_VERDICT_WHITELIST:
+        return "whitelist";
+    case DAQ_VERDICT_BLACKLIST:
+        return "blacklist";
+    case DAQ_VERDICT_IGNORE:
+        return "ignore";
+    case DAQ_VERDICT_RETRY:
+        return "retry";
+    case MAX_DAQ_VERDICT:
+    default:
+        return "";
+    }
+}
 
 //-------------------------------------------------------------------------
 // inspector stuff
@@ -210,12 +235,20 @@ bool FinalizePacket::configure(SnortConfig*)
 
 void FinalizePacket::show(SnortConfig*)
 {
-    LogMessage("    start: %u\n", start_pdu);
-    LogMessage("    end: %u\n", end_pdu);
-    LogMessage("    modify: %u\n", modify_pdu);
-    LogMessage("    verdict: %d\n", new_verdict);
-    LogMessage("    switch to wizard: %s\n", switch_to_wizard ? "true" : "false" );
-    LogMessage("    use ioctl to inject: %s\n", use_direct_inject ? "true" : "false" );
+    std::string modify;
+    modify += "{ pdu = ";
+    modify += std::to_string(modify_pdu);
+    modify += ", verdict = ";
+    modify += to_string(new_verdict);
+    modify += " }";
+
+    ConfigLogger::log_value("start_pdu", start_pdu);
+    ConfigLogger::log_value("end_pdu", end_pdu);
+    ConfigLogger::log_list("modify", modify.c_str());
+    ConfigLogger::log_flag("switch_to_wizard", switch_to_wizard);
+    ConfigLogger::log_flag("use_direct_inject", use_direct_inject);
+    ConfigLogger::log_flag("defer_whitelist", defer_whitelist);
+    ConfigLogger::log_flag("force_whitelist", force_whitelist);
 }
 
 //-------------------------------------------------------------------------
