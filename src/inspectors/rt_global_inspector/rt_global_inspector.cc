@@ -22,11 +22,13 @@
 #include <cstdint>
 #include <ctime>
 
+#include "detection/ips_context.h"
 #include "flow/flow.h"
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
 #include "main/snort_config.h"
+#include "protocols/packet.h"
 #include "time/packet_time.h"
 #include "utils/util.h"
 #include "utils/util_cstring.h"
@@ -36,27 +38,11 @@ using namespace snort;
 static const char* s_name = "rt_global";
 static const char* s_help = "The regression test global inspector is used for regression tests specific to a global inspector";
 
-const PegInfo rtgi_pegs[] =
-{
-    { CountType::SUM, "packets", "total packets" },
-    { CountType::END, nullptr, nullptr }
-};
-
-THREAD_LOCAL RtGlobalInspectorStats rtgi_stats;
-
-//-------------------------------------------------------------------------
-// module stuff
-//-------------------------------------------------------------------------
-
-static const Parameter rtpi_params[] =
-{
-    { "memcap", Parameter::PT_INT, nullptr, "2048", "cap on amount of memory used" },
-    { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
-};
-
 struct RtGlobalModuleConfig
 {
-    uint64_t memcap = 0;
+    uint64_t memcap;
+    uint32_t downshift_packet;
+    unsigned downshift_mode;
 };
 
 struct RtgiCache
@@ -64,18 +50,26 @@ struct RtgiCache
     uint64_t memcap = 0;
     uint8_t* rtgi_memory = nullptr;
 };
+
 THREAD_LOCAL RtgiCache* rtgi_cache = nullptr;
+
+THREAD_LOCAL RtGlobalInspectorStats rtgi_stats;
+
+//-------------------------------------------------------------------------
+// tuner stuff
+//-------------------------------------------------------------------------
 
 class RtGlobalReloadTuner : public ReloadResourceTuner
 {
 public:
+    RtGlobalReloadTuner() = default;
 
-    void initialize(RtGlobalModuleConfig& config_)
-    { config = config_; }
+    void initialize(uint64_t cap)
+    { memcap = cap; }
 
     bool tinit() override
     {
-        if (rtgi_cache->memcap != config.memcap)
+        if (rtgi_cache->memcap != memcap)
             return true;
         else
             return false;
@@ -101,13 +95,37 @@ private:
         if ( work_limit-- )
         {
             snort_free(rtgi_cache->rtgi_memory);
-            rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(config.memcap);
+            rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(memcap);
         }
 
         return true;
     }
 
-    RtGlobalModuleConfig config;
+    uint64_t memcap = 0;
+};
+
+//-------------------------------------------------------------------------
+// module stuff
+//-------------------------------------------------------------------------
+
+static const Parameter rtpi_params[] =
+{
+    { "downshift_packet", Parameter::PT_INT, "0:max32", "0",
+      "attempt downshift at this packet on flow (0 is disabled)" },
+
+    { "downshift_mode", Parameter::PT_INT, "1:3", "3",
+      "1 = unconditional, 2 = !ctl and !tls, 3 = !ctl and !file" },
+
+    { "memcap", Parameter::PT_INT, "0:max53", "2048",
+      "cap on amount of memory used (0 is disabled)" },
+
+    { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
+};
+
+const PegInfo rtgi_pegs[] =
+{
+    { CountType::SUM, "packets", "total packets" },
+    { CountType::END, nullptr, nullptr }
 };
 
 class RtGlobalModule : public Module
@@ -138,8 +156,15 @@ private:
 
 bool RtGlobalModule::set(const char*, Value& v, SnortConfig*)
 {
-    if (v.is("memcap"))
+    if ( v.is("downshift_packet") )
+        config.downshift_packet = v.get_uint32();
+
+    else if ( v.is("downshift_mode" ) )
+        config.downshift_mode = v.get_uint8();
+
+    else if ( v.is("memcap") )
         config.memcap = v.get_uint64();
+
     else
         return false;
 
@@ -148,8 +173,11 @@ bool RtGlobalModule::set(const char*, Value& v, SnortConfig*)
 
 bool RtGlobalModule::end(const char*, int, SnortConfig* sc)
 {
-    rtgi_reload_tuner.initialize(config);
-    sc->register_reload_resource_tuner(rtgi_reload_tuner);
+    if ( config.memcap )
+    {
+        rtgi_reload_tuner.initialize(config.memcap);
+        sc->register_reload_resource_tuner(rtgi_reload_tuner);
+    }
     return true;
 }
 
@@ -160,36 +188,81 @@ bool RtGlobalModule::end(const char*, int, SnortConfig* sc)
 class RtGlobalInspector : public Inspector
 {
 public:
-    RtGlobalInspector(const RtGlobalModuleConfig*);
+    RtGlobalInspector(const RtGlobalModuleConfig* c)
+    { config = *c; }
 
     void eval(Packet*) override;
     void show(SnortConfig*) override;
     void tinit() override;
     void tterm() override;
 
+private:
+    bool time_to_shift(const Flow*);
+    void shift_gears(Packet*);
+
 public:
     RtGlobalModuleConfig config;
 };
 
-RtGlobalInspector::RtGlobalInspector(const RtGlobalModuleConfig* c)
-{ config = *c; }
-
 void RtGlobalInspector::tinit()
 {
-    rtgi_cache = new RtgiCache;
-    rtgi_cache->memcap = config.memcap;
-    rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(config.memcap);
+    if ( config.memcap )
+    {
+        rtgi_cache = new RtgiCache;
+        rtgi_cache->memcap = config.memcap;
+        rtgi_cache->rtgi_memory = (uint8_t*)snort_alloc(config.memcap);
+    }
 }
 
 void RtGlobalInspector::tterm()
 {
-    snort_free(rtgi_cache->rtgi_memory);
-    delete rtgi_cache;
+    if ( config.memcap )
+    {
+        snort_free(rtgi_cache->rtgi_memory);
+        delete rtgi_cache;
+    }
 }
 
-void RtGlobalInspector::eval(Packet*)
+bool RtGlobalInspector::time_to_shift(const Flow* f)
+{
+    if ( !f )
+        return false;
+
+    return f->flowstats.client_pkts + f->flowstats.server_pkts == config.downshift_packet;
+}
+
+void RtGlobalInspector::shift_gears(Packet* p)
+{
+    const Inspector* g = p->flow->gadget;
+
+    switch ( config.downshift_mode )
+    {
+    case 3:
+        if ( g and !g->is_control_channel() and !g->can_carve_files() )
+            p->context->disable_inspection();
+        break;
+
+    case 2:
+        if ( g and !g->is_control_channel() and !g->can_start_tls() )
+            p->context->disable_inspection();
+        break;
+
+    case 1:
+        p->context->disable_inspection();
+        break;
+
+    default:
+        break;
+    }
+    p->context->disable_detection();
+}
+
+void RtGlobalInspector::eval(Packet* p)
 {
     rtgi_stats.total_packets++;
+
+    if ( time_to_shift(p->flow) )
+        shift_gears(p);
 }
 
 void RtGlobalInspector::show(SnortConfig*)
@@ -232,8 +305,8 @@ static const InspectApi rtgi_api =
         mod_ctor,
         mod_dtor
     },
-    IT_SERVICE,
-    PROTO_BIT__PDU,
+    IT_CONTROL,
+    PROTO_BIT__ANY_PDU,
     nullptr, // buffers
     s_name, // service
     nullptr, // init
