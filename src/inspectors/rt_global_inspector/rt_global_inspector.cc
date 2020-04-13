@@ -27,6 +27,7 @@
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
+#include "main/policy.h"
 #include "main/snort_config.h"
 #include "protocols/packet.h"
 #include "time/packet_time.h"
@@ -43,6 +44,7 @@ struct RtGlobalModuleConfig
     uint64_t memcap;
     uint32_t downshift_packet;
     unsigned downshift_mode;
+    bool empty_ips;
 };
 
 struct RtgiCache
@@ -119,6 +121,9 @@ static const Parameter rtpi_params[] =
     { "memcap", Parameter::PT_INT, "0:max53", "2048",
       "cap on amount of memory used (0 is disabled)" },
 
+    { "empty_ips", Parameter::PT_BOOL, nullptr, "false",
+      "ips policy with no rules" },
+
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
@@ -164,6 +169,9 @@ bool RtGlobalModule::set(const char*, Value& v, SnortConfig*)
 
     else if ( v.is("memcap") )
         config.memcap = v.get_uint64();
+
+    else if ( v.is("empty_ips") )
+        config.empty_ips = v.get_bool();
 
     else
         return false;
@@ -263,6 +271,15 @@ void RtGlobalInspector::eval(Packet* p)
 
     if ( time_to_shift(p->flow) )
         shift_gears(p);
+
+    if ( config.empty_ips )
+    {
+        IpsPolicy* empty_policy = snort::get_empty_ips_policy(SnortConfig::get_conf());
+        if ( p->flow )
+        {
+            p->flow->ips_policy_id = empty_policy->policy_id;
+        }
+    }
 }
 
 void RtGlobalInspector::show(SnortConfig*)
