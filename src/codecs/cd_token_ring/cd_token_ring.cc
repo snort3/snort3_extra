@@ -41,10 +41,10 @@ static const RuleMap tkr_rules[] =
     { 0, nullptr }
 };
 
-class TrCodecModule : public CodecModule
+class TrCodecModule : public BaseCodecModule
 {
 public:
-    TrCodecModule() : CodecModule(TR_NAME, TR_HELP) { }
+    TrCodecModule() : BaseCodecModule(TR_NAME, TR_HELP) { }
 
     const RuleMap* get_rules() const override
     { return tkr_rules; }

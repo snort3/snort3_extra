@@ -36,10 +36,10 @@ static const RuleMap eapol_rules[] =
     { 0, nullptr }
 };
 
-class EapolModule : public CodecModule
+class EapolModule : public BaseCodecModule
 {
 public:
-    EapolModule() : CodecModule(CD_EAPOL_NAME, CD_EAPOL_HELP) { }
+    EapolModule() : BaseCodecModule(CD_EAPOL_NAME, CD_EAPOL_HELP) { }
 
     const RuleMap* get_rules() const override
     { return eapol_rules; }

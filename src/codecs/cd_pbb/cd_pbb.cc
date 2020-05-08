@@ -57,10 +57,10 @@ static const RuleMap pbb_rules[] =
     { 0, nullptr }
 };
 
-class PbbModule : public CodecModule
+class PbbModule : public BaseCodecModule
 {
 public:
-    PbbModule() : CodecModule(CD_PBB_NAME, CD_PBB_HELP) { }
+    PbbModule() : BaseCodecModule(CD_PBB_NAME, CD_PBB_HELP) { }
 
     const RuleMap* get_rules() const override
     { return pbb_rules; }

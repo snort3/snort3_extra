@@ -40,10 +40,10 @@ static const RuleMap wlan_rules[] =
     { 0, nullptr }
 };
 
-class WlanCodecModule : public CodecModule
+class WlanCodecModule : public BaseCodecModule
 {
 public:
-    WlanCodecModule() : CodecModule(CD_WLAN_NAME, CD_WLAN_HELP) { }
+    WlanCodecModule() : BaseCodecModule(CD_WLAN_NAME, CD_WLAN_HELP) { }
 
     const RuleMap* get_rules() const override
     { return wlan_rules; }
