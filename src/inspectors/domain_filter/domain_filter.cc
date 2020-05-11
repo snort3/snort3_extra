@@ -202,7 +202,7 @@ class DomainFilter : public Inspector
 {
 public:
     DomainFilter(DomainList&);
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void eval(Packet*) override { }
 
 private:
@@ -218,7 +218,7 @@ DomainFilter::DomainFilter(DomainList& sv)
         DataBus::subscribe(HTTP_REQUEST_HEADER_EVENT_KEY, new HttpHandler(hosts));
 }
 
-void DomainFilter::show(SnortConfig*)
+void DomainFilter::show(const SnortConfig*) const
 {
     std::string domain_list;
 

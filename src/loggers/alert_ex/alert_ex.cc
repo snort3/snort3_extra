@@ -117,7 +117,7 @@ static Module* mod_ctor()
 static void mod_dtor(Module* m)
 { delete m; }
 
-static Logger* ex_ctor(SnortConfig*, Module* mod)
+static Logger* ex_ctor(Module* mod)
 {
     return new ExLogger((ExModule*)mod);
 }

@@ -41,7 +41,7 @@ public:
     NullLogger() = default;
 };
 
-static Logger* null_ctor(SnortConfig*, Module*)
+static Logger* null_ctor(Module*)
 { return new NullLogger; }
 
 static void null_dtor(Logger* p)

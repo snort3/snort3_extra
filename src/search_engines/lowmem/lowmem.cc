@@ -52,8 +52,7 @@ public:
     { KTrieDelete(obj); }
 
     int add_pattern(
-        SnortConfig*, const uint8_t* P, unsigned m,
-        const PatternDescriptor& desc, void* user) override
+        const uint8_t* P, unsigned m, const PatternDescriptor& desc, void* user) override
     {
         return KTrieAddPattern(obj, P, m, desc.no_case, desc.negated, user);
     }
