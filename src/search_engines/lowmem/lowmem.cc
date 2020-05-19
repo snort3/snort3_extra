@@ -45,16 +45,14 @@ private:
     KTRIE_STRUCT* obj;
 
 public:
-    LowmemMpse(SnortConfig*, const MpseAgent* agent)
-        : Mpse("lowmem")
+    LowmemMpse(const MpseAgent* agent) : Mpse("lowmem")
     { obj = KTrieNew(0, agent); }
 
     ~LowmemMpse() override
     { KTrieDelete(obj); }
 
     int add_pattern(
-        SnortConfig*, const uint8_t* P, unsigned m,
-        const PatternDescriptor& desc, void* user) override
+        const uint8_t* P, unsigned m, const PatternDescriptor& desc, void* user) override
     {
         return KTrieAddPattern(obj, P, m, desc.no_case, desc.negated, user);
     }
@@ -80,9 +78,9 @@ public:
 // api
 //-------------------------------------------------------------------------
 
-static Mpse* lm_ctor(SnortConfig* sc, class Module*, const MpseAgent* agent)
+static Mpse* lm_ctor(const SnortConfig*, class Module*, const MpseAgent* agent)
 {
-    return new LowmemMpse(sc, agent);
+    return new LowmemMpse(agent);
 }
 
 static void lm_dtor(Mpse* p)

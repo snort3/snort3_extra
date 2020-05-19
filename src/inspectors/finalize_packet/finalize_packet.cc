@@ -101,7 +101,7 @@ public:
         force_whitelist = force_wlist;
     }
 
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void eval(Packet* p) override
     {
         if(!p or !p->flow)
@@ -233,7 +233,7 @@ bool FinalizePacket::configure(SnortConfig*)
     return true;
 }
 
-void FinalizePacket::show(SnortConfig*)
+void FinalizePacket::show(const SnortConfig*) const
 {
     std::string modify;
     modify += "{ pdu = ";

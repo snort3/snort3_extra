@@ -195,7 +195,7 @@ class RtPacketInspector : public Inspector
 public:
     RtPacketInspector(RtPacketInspectorModule* mod);
 
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void eval(Packet* p) override;
     bool configure(SnortConfig*) override
     {
@@ -216,7 +216,7 @@ RtPacketInspector::RtPacketInspector(RtPacketInspectorModule* mod)
     rtpi_stats.total_packets = 0;
 }
 
-void RtPacketInspector::show(SnortConfig*)
+void RtPacketInspector::show(const SnortConfig*) const
 {
     ConfigLogger::log_flag("retry_targeted", retry_targeted);
     ConfigLogger::log_flag("retry_all", retry_all);

@@ -200,7 +200,7 @@ public:
     { config = *c; }
 
     void eval(Packet*) override;
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void tinit() override;
     void tterm() override;
 
@@ -282,7 +282,7 @@ void RtGlobalInspector::eval(Packet* p)
     }
 }
 
-void RtGlobalInspector::show(SnortConfig*)
+void RtGlobalInspector::show(const SnortConfig*) const
 {
     ConfigLogger::log_value("memcap", config.memcap);
 }

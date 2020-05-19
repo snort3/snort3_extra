@@ -46,7 +46,7 @@ class Dpx : public Inspector
 public:
     Dpx(uint16_t port, uint16_t max);
 
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void eval(Packet*) override;
 
 private:
@@ -60,7 +60,7 @@ Dpx::Dpx(uint16_t p, uint16_t m)
     max = m;
 }
 
-void Dpx::show(SnortConfig*)
+void Dpx::show(const SnortConfig*) const
 {
     ConfigLogger::log_value("port", port);
     ConfigLogger::log_value("max", max);

@@ -114,7 +114,7 @@ public:
         limit = n;
     }
 
-    void show(SnortConfig*) override;
+    void show(const SnortConfig*) const override;
     void eval(Packet*) override { }
 
     bool configure(SnortConfig*) override
@@ -134,7 +134,7 @@ private:
     unsigned long limit;
 };
 
-void DataLog::show(SnortConfig*)
+void DataLog::show(const SnortConfig*) const
 {
     ConfigLogger::log_value("key", key.c_str());
     ConfigLogger::log_value("limit", limit / M_BYTES);
