@@ -1,3 +1,4 @@
+add_subdirectory ( appid_listener )
 add_subdirectory ( data_log )
 add_subdirectory ( domain_filter )
 add_subdirectory ( dpx )
