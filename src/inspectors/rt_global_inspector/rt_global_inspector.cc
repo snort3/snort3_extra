@@ -28,13 +28,17 @@
 #include "framework/module.h"
 #include "log/messages.h"
 #include "main/policy.h"
+#include "main/snort.h"
 #include "main/snort_config.h"
+#include "packet_io/active.h"
 #include "protocols/packet.h"
 #include "time/packet_time.h"
 #include "utils/util.h"
 #include "utils/util_cstring.h"
 
 using namespace snort;
+
+#define DROP_REASON_UNKNOWN 3
 
 static const char* s_name = "rt_global";
 static const char* s_help = "The regression test global inspector is used for regression tests specific to a global inspector";
@@ -45,6 +49,7 @@ struct RtGlobalModuleConfig
     uint32_t downshift_packet;
     unsigned downshift_mode;
     bool empty_ips;
+    bool init_drop_reason;
 };
 
 struct RtgiCache
@@ -124,6 +129,9 @@ static const Parameter rtpi_params[] =
     { "empty_ips", Parameter::PT_BOOL, nullptr, "false",
       "ips policy with no rules" },
 
+    { "init_drop_reason", Parameter::PT_BOOL, nullptr, "false",
+      "populate drop reason map" },
+
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
@@ -173,6 +181,9 @@ bool RtGlobalModule::set(const char*, Value& v, SnortConfig*)
     else if ( v.is("empty_ips") )
         config.empty_ips = v.get_bool();
 
+    else if ( v.is("init_drop_reason") )
+        config.init_drop_reason = v.get_bool();
+
     else
         return false;
 
@@ -203,6 +214,7 @@ public:
     void show(const SnortConfig*) const override;
     void tinit() override;
     void tterm() override;
+    bool configure(snort::SnortConfig*) override;
 
 private:
     bool time_to_shift(const Flow*);
@@ -211,6 +223,34 @@ private:
 public:
     RtGlobalModuleConfig config;
 };
+
+struct reason_id_map_s
+{
+    const char* reason;
+    uint8_t id;
+};
+
+static struct reason_id_map_s reason_id_map[] =
+{
+    { "snort", 5 },
+    { "ftp", 13 },
+    { "stream", 14 },
+    { "session", 15 },
+    { "reputation", 19 },
+    { "smb", 22 },
+    { "file", 23 },
+    { "ips", 24 },
+    { nullptr, 0 }
+};
+  
+static void populate_drop_reason_string_id_map()
+{
+    int idx;
+
+    for ( idx = 0; reason_id_map[idx].reason != nullptr; idx++ )
+        Active::map_drop_reason_id(reason_id_map[idx].reason,
+            reason_id_map[idx].id);
+}
 
 void RtGlobalInspector::tinit()
 {
@@ -285,6 +325,18 @@ void RtGlobalInspector::eval(Packet* p)
 void RtGlobalInspector::show(const SnortConfig*) const
 {
     ConfigLogger::log_value("memcap", config.memcap);
+    ConfigLogger::log_flag("init_drop_reason", config.init_drop_reason);
+}
+
+bool RtGlobalInspector::configure(SnortConfig*)
+{
+    if ( !Snort::is_reloading() and config.init_drop_reason )
+    {
+        Active::set_default_drop_reason(DROP_REASON_UNKNOWN);
+        populate_drop_reason_string_id_map();
+    }
+
+    return true;
 }
 
 //-------------------------------------------------------------------------
