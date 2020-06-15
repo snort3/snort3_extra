@@ -68,13 +68,14 @@ public:
         return 0;
     }
 
-    int tfini() override
+    bool tfini(bool) override
     {
         stringstream msg;
         msg << WhereMacro << ": per worker-thread context clean-up." << endl;
         cerr << msg.str();
-        return 0;
+        return false;
     }
+
 };
 
 class ThirdPartyAppIdSessionImpl : public ThirdPartyAppIdSession
