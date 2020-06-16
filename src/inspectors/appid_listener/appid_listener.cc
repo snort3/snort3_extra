@@ -136,7 +136,7 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static Inspector* al_ctor(Module* m)
+static Inspector* al_ctor(Module*)
 {
     return new AppIdListenerInspector();
 }
