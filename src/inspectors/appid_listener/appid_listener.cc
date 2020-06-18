@@ -66,15 +66,10 @@ public:
             LogMessage("the flow in handle() is empty\n");
             return;
         }
-        AppidEvent* appid_event = static_cast<AppidEvent*>(&event);
-        AppidChangeBits ac_bits = appid_event->get_change_bitset();
 
-        AppIdSessionApi* sessionApi = snort::appid_api.create_appid_session_api(*flow);
-        if (!sessionApi)
-        {
-            LogMessage("The session API is null\n");
-            return;
-        }
+        AppidEvent* appid_event = static_cast<AppidEvent*>(&event);
+        const AppidChangeBits& ac_bits = appid_event->get_change_bitset();
+        const AppIdSessionApi& api = appid_event->get_appid_session_api();
 
         if (ac_bits.test(APPID_SERVICE_BIT) or ac_bits.test(APPID_CLIENT_BIT) or 
             ac_bits.test(APPID_PAYLOAD_BIT) or ac_bits.test(APPID_MISC_BIT) or 
@@ -85,11 +80,11 @@ public:
             flow->server_ip.ntop(srv_ip_str, sizeof(srv_ip_str));            
 
             AppId service, payload, client, misc, referred;
-            payload = sessionApi->get_payload_app_id();
-            client = sessionApi->get_client_app_id();
-            misc = sessionApi->get_misc_app_id();
-            service = sessionApi->get_service_app_id();
-            referred = sessionApi->get_referred_app_id();
+            payload = api.get_payload_app_id();
+            client = api.get_client_app_id();
+            misc = api.get_misc_app_id();
+            service = api.get_service_app_id();
+            referred = api.get_referred_app_id();
 
             LogMessage("%s:%d<->%s:%d proto: %d packet: " STDu64 " service: %d client: %d "
                 "payload: %d misc: %d referred: %d\n",
@@ -100,8 +95,6 @@ public:
         {
             LogMessage("AppId is not available\n");
         }
-
-        snort::appid_api.free_appid_session_api(sessionApi);
     }
 };
 
