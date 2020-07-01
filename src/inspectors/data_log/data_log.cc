@@ -108,11 +108,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
 class DataLog : public Inspector
 {
 public:
-    DataLog(const std::string& s, unsigned long n)
-    {
-        key = s;
-        limit = n;
-    }
+    DataLog(const std::string& s, uint64_t n) : key(s), limit(n) { }
 
     void show(const SnortConfig*) const override;
     void eval(Packet*) override { }
@@ -131,7 +127,7 @@ public:
 
 private:
     std::string key;
-    unsigned long limit;
+    uint64_t limit;
 };
 
 void DataLog::show(const SnortConfig*) const
@@ -175,7 +171,7 @@ public:
 
 public:
     std::string key;
-    unsigned long limit;
+    uint64_t limit;
 };
 
 bool DataLogModule::begin(const char*, int, SnortConfig*)
