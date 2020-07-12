@@ -220,20 +220,24 @@ DomainFilter::DomainFilter(DomainList& sv)
 
 void DomainFilter::show(const SnortConfig*) const
 {
-    std::string domain_list;
+    DomainList domain_list;
 
-    for (auto& host : hosts)
+    for (const auto& host : hosts)
+        domain_list.push_back(host);
+    std::sort(domain_list.begin(), domain_list.end());
+
+    std::string sorted_hosts;
+    for (const auto& host : domain_list)
     {
-        domain_list += host;
-        domain_list += " ";
+        if (!sorted_hosts.empty())
+            sorted_hosts += " ";
+        sorted_hosts += host;
     }
 
-    if ( !domain_list.empty() )
-        domain_list.pop_back();
-    else
-        domain_list += "none";
+    if ( sorted_hosts.empty() )
+        sorted_hosts = "none";
 
-    ConfigLogger::log_list("hosts", domain_list.c_str());
+    ConfigLogger::log_list("hosts", sorted_hosts.c_str());
 }
 
 //--------------------------------------------------------------------------
