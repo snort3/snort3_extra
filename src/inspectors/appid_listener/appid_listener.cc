@@ -17,87 +17,70 @@
 //--------------------------------------------------------------------------
 // appid_listener.cc author Rajeshwari Adapalam <rajadapa@cisco.com>
 
-#include <ctime>
+#include "appid_listener.h"
 
-#include "flow/flow.h"
-#include "framework/data_bus.h"
+#include <ctime>
+#include <string>
+
+#include "framework/decode_data.h"
 #include "framework/inspector.h"
 #include "framework/module.h"
-#include "log/messages.h"
 #include "main/snort_config.h"
 #include "main/snort_types.h"
-#include "network_inspectors/appid/appid_api.h"
 #include "profiler/profiler.h"
 #include "pub_sub/http_events.h"
-#include "pub_sub/appid_events.h"
 #include "time/packet_time.h"
-#include "utils/stats.h"
 
-static const char* s_name = "appid_listener";
-static const char* s_help = "log selected published data to appid_listener.log";
+#include "appid_listener_event_handler.h"
 
 using namespace snort;
 
+static const char* s_help = "log selected published data to appid_listener.log";
 
-//-------------------------------------------------------------------------
-// module stuff
-//-------------------------------------------------------------------------
+static const Parameter s_params[] =
+{
+    { "json_logging", Parameter::PT_BOOL, nullptr, "false",
+      "log appid data in json format" },
+    { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
+};
 
 class AppIdListenerModule : public Module
 {
 public:
-    AppIdListenerModule() : Module(s_name, s_help){ }
-};
+    AppIdListenerModule() : Module(MOD_NAME, s_help, s_params) { }
 
-
-// //-------------------------------------------------------------------------
-// // data handler stuff
-// //-------------------------------------------------------------------------
-
-class AppIdEventHandler : public DataHandler
-{
-public:
-    AppIdEventHandler() : DataHandler(s_name){ }
-
-    void handle(DataEvent& event, Flow* flow) override
+    ~AppIdListenerModule() override
     {
-        if (!flow)
-        {
-            LogMessage("the flow in handle() is empty\n");
-            return;
-        }
-
-        AppidEvent* appid_event = static_cast<AppidEvent*>(&event);
-        const AppidChangeBits& ac_bits = appid_event->get_change_bitset();
-        const AppIdSessionApi& api = appid_event->get_appid_session_api();
-
-        if (ac_bits.test(APPID_SERVICE_BIT) or ac_bits.test(APPID_CLIENT_BIT) or 
-            ac_bits.test(APPID_PAYLOAD_BIT) or ac_bits.test(APPID_MISC_BIT) or 
-            ac_bits.test(APPID_REFERRED_BIT)) 
-        {
-            char cli_ip_str[INET6_ADDRSTRLEN], srv_ip_str[INET6_ADDRSTRLEN];                                            
-            flow->client_ip.ntop(cli_ip_str, sizeof(cli_ip_str));                           
-            flow->server_ip.ntop(srv_ip_str, sizeof(srv_ip_str));            
-
-            AppId service, payload, client, misc, referred;
-            payload = api.get_payload_app_id();
-            client = api.get_client_app_id();
-            misc = api.get_misc_app_id();
-            service = api.get_service_app_id();
-            referred = api.get_referred_app_id();
-
-            LogMessage("%s:%d<->%s:%d proto: %d packet: " STDu64 " service: %d client: %d "
-                "payload: %d misc: %d referred: %d\n",
-                cli_ip_str, flow->client_port, srv_ip_str, flow->server_port, flow->ip_proto,
-                get_packet_number(), service, client, payload, misc, referred);
-        }
-        else
-        {
-            LogMessage("AppId is not available\n");
-        }
+        delete config;
     }
-};
 
+    bool begin(const char*, int, SnortConfig*) override
+    {
+        if ( config )
+            return false;
+
+        config = new AppIdListenerConfig;
+        return true;
+    }
+
+    bool set(const char*, Value& v, SnortConfig*) override
+    {
+        if ( v.is("json_logging") )
+            config->json_logging = v.get_bool();
+
+        return true;
+    }
+
+    const AppIdListenerConfig* get_data()
+    {
+        AppIdListenerConfig* temp = config;
+        config = nullptr;
+        return temp;
+    }
+
+private:
+    AppIdListenerConfig* config = nullptr;
+};
 
 //-------------------------------------------------------------------------
 // inspector stuff
@@ -106,13 +89,27 @@ public:
 class AppIdListenerInspector : public Inspector
 {
 public:
+    AppIdListenerInspector(AppIdListenerModule& mod)
+    {
+        config = mod.get_data();
+        assert(config);
+    }
+
+    ~AppIdListenerInspector() override
+    { delete config; }
+
     void eval(Packet*) override { }
+
     bool configure(SnortConfig* sc) override
     {
+        assert(config);
         sc->set_run_flags(RUN_FLAG__TRACK_ON_SYN);
-        DataBus::subscribe(APPID_EVENT_ANY_CHANGE, new AppIdEventHandler());
+        DataBus::subscribe(APPID_EVENT_ANY_CHANGE, new AppIdListenerEventHandler(*config));
         return true;
     }
+
+private:
+    const AppIdListenerConfig* config = nullptr;
 };
 
 //-------------------------------------------------------------------------
@@ -129,9 +126,10 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static Inspector* al_ctor(Module*)
+static Inspector* al_ctor(Module* m)
 {
-    return new AppIdListenerInspector();
+    assert(m);
+    return new AppIdListenerInspector((AppIdListenerModule&)*m);
 }
 
 static void al_dtor(Inspector* p)
@@ -148,7 +146,7 @@ static const InspectApi appid_lstnr_api
         0,
         API_RESERVED,
         API_OPTIONS,
-        s_name,
+        MOD_NAME,
         s_help,
         mod_ctor,
         mod_dtor
@@ -172,4 +170,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &appid_lstnr_api.base,
     nullptr
 };
-
