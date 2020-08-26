@@ -15,6 +15,9 @@ pkg_search_module ( SNORT3 REQUIRED snort>=3 )
 add_library (
     appid_listener MODULE
     appid_listener.cc
+    appid_listener.h
+    appid_listener_event_handler.cc
+    appid_listener_event_handler.h
 )
 
 if ( APPLE )
