@@ -22,6 +22,7 @@
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
+#include "main/snort_debug.h"
 #include "profiler/profiler.h"
 #include "protocols/packet.h"
 
@@ -36,6 +37,8 @@ static const char* s_help = "dynamic inspector example";
 static THREAD_LOCAL ProfileStats dpxPerfStats;
 
 static THREAD_LOCAL SimpleStats dpxstats;
+
+THREAD_LOCAL const Trace* dpx_trace = nullptr;
 
 //-------------------------------------------------------------------------
 // class stuff
@@ -72,7 +75,11 @@ void Dpx::eval(Packet* p)
     assert(p->is_udp());
 
     if ( p->ptrs.dp == port && p->dsize > max )
+    {
+        trace_logf(dpx_trace, p, "destination port: %d, packet payload size: %d.\n",
+            p->ptrs.dp, p->dsize);
         DetectionEngine::queue_event(DPX_GID, DPX_SID);
+    }
 
     ++dpxstats.total_packets;
 }
@@ -124,6 +131,9 @@ public:
     Usage get_usage() const override
     { return INSPECT; }
 
+    void set_trace(const Trace*) const override;
+    const TraceOption* get_trace_options() const override;
+
 public:
     uint16_t port;
     uint16_t max;
@@ -141,6 +151,15 @@ bool DpxModule::set(const char*, Value& v, SnortConfig*)
         return false;
 
     return true;
+}
+
+void DpxModule::set_trace(const Trace* trace) const
+{ dpx_trace = trace; }
+
+const TraceOption* DpxModule::get_trace_options() const
+{
+    static const TraceOption dpx_options(nullptr, 0, nullptr);
+    return &dpx_options;
 }
 
 //-------------------------------------------------------------------------
