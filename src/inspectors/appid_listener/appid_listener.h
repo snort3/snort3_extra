@@ -20,11 +20,18 @@
 #ifndef APPID_LISTENER_H
 #define APPID_LISTENER_H
 
+#include <fstream>
+#include <mutex>
+#include <string>
+
 #define MOD_NAME "appid_listener"
 
 struct AppIdListenerConfig
 {
     bool json_logging = false;
+    std::string file_name;
+    std::ofstream file_stream;
+    std::mutex file_mutex;
 };
 
 #endif
