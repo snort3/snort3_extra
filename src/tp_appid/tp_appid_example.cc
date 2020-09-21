@@ -82,7 +82,7 @@ class ThirdPartyAppIdSessionImpl : public ThirdPartyAppIdSession
 {
 public:
 
-    bool reset() override { return 1; }
+    void reset() override { }
     void delete_with_ctxt() override { delete this; }
 
     ThirdPartyAppIdSessionImpl(ThirdPartyAppIdContext& tp_ctxt)
