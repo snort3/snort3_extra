@@ -20,6 +20,8 @@
 #ifndef APPID_LISTENER_EVENT_HANDLER_H
 #define APPID_LISTENER_EVENT_HANDLER_H
 
+#include <sstream>
+
 #include "framework/counts.h"
 #include "framework/data_bus.h"
 #include "helpers/json_stream.h"
@@ -38,19 +40,19 @@ struct Packet;
 class AppIdListenerEventHandler : public snort::DataHandler
 {
 public:
-    AppIdListenerEventHandler(const AppIdListenerConfig& config) :
+    AppIdListenerEventHandler(AppIdListenerConfig& config) :
         DataHandler(MOD_NAME), config(config) { }
 
     void handle(snort::DataEvent& event, snort::Flow* flow) override;
 
 private:
-    const AppIdListenerConfig& config;
+    AppIdListenerConfig& config;
 
     void print_message(const char*, const char*, const snort::Flow&, PegCount,
-        AppId, AppId, AppId, AppId, AppId) const;
+        AppId, AppId, AppId, AppId, AppId);
     void print_json_message(snort::JsonStream&, const char*, const char*, const snort::Flow&,
         PegCount, const snort::AppIdSessionApi&, AppId, AppId, AppId, AppId, AppId, bool, uint32_t,
-        const snort::Packet*) const;
+        const snort::Packet*);
 
     bool appid_changed(const AppidChangeBits& ac_bits) const
     {
@@ -92,10 +94,27 @@ private:
     }
 
     void print_header(const char* cli_ip_str, const char* srv_ip_str, uint16_t client_port,
-        uint16_t server_port, uint8_t ip_proto, PegCount packet_number) const
+        uint16_t server_port, uint8_t ip_proto, PegCount packet_number)
     {
-        snort::LogMessage("%s:%d<->%s:%d proto: %d packet: " STDu64,
-            cli_ip_str, client_port, srv_ip_str, server_port, ip_proto, packet_number);
+        std::ostringstream ss;
+
+        ss << cli_ip_str << ":" << client_port << "<->" << srv_ip_str << ":" << server_port <<
+            " proto: " << (unsigned)ip_proto << " packet: " << packet_number;
+        if (!write_to_file(ss.str()))
+            snort::LogMessage("%s", ss.str().c_str());
+    }
+
+    bool write_to_file(const std::string& str)
+    {
+        const std::lock_guard<std::mutex> lock(config.file_mutex);
+
+        if (config.file_stream.is_open())
+        {
+            config.file_stream << str;
+            return true;
+        }
+
+        return false;
     }
 
 };

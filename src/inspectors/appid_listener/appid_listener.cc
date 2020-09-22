@@ -20,7 +20,6 @@
 #include "appid_listener.h"
 
 #include <ctime>
-#include <string>
 
 #include "framework/decode_data.h"
 #include "framework/inspector.h"
@@ -40,7 +39,9 @@ static const char* s_help = "log selected published data to appid_listener.log";
 static const Parameter s_params[] =
 {
     { "json_logging", Parameter::PT_BOOL, nullptr, "false",
-      "log appid data in json format" },
+        "log appid data in json format" },
+    { "file", Parameter::PT_STRING, nullptr, nullptr,
+        "output data to given file" },
     { nullptr, Parameter::PT_MAX, nullptr, nullptr, nullptr }
 };
 
@@ -67,11 +68,13 @@ public:
     {
         if ( v.is("json_logging") )
             config->json_logging = v.get_bool();
+        else if ( v.is("file") )
+            config->file_name = v.get_string();
 
         return true;
     }
 
-    const AppIdListenerConfig* get_data()
+    AppIdListenerConfig* get_data()
     {
         AppIdListenerConfig* temp = config;
         config = nullptr;
@@ -104,12 +107,18 @@ public:
     {
         assert(config);
         sc->set_run_flags(RUN_FLAG__TRACK_ON_SYN);
+        if (!config->file_name.empty())
+        {
+            config->file_stream.open(config->file_name);
+            if (!config->file_stream.is_open())
+                WarningMessage("appid_listener: can't open file %s\n", config->file_name.c_str());
+        }
         DataBus::subscribe(APPID_EVENT_ANY_CHANGE, new AppIdListenerEventHandler(*config));
         return true;
     }
 
 private:
-    const AppIdListenerConfig* config = nullptr;
+    AppIdListenerConfig* config = nullptr;
 };
 
 //-------------------------------------------------------------------------

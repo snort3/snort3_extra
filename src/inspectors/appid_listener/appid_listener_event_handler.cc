@@ -27,6 +27,7 @@
 #include "utils/util.h"
 
 using namespace snort;
+using namespace std;
 
 void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 {
@@ -41,7 +42,7 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     if (!flow)
     {
         if (!config.json_logging)
-            WarningMessage("flow is null\n");
+            WarningMessage("appid_listener: flow is null\n");
         return;
     }
 
@@ -56,7 +57,11 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     {
         print_header(cli_ip_str, srv_ip_str, flow->client_port, flow->server_port,
             flow->ip_proto, get_packet_number());
-        LogMessage(" appid data is reset\n");
+
+        ostringstream ss(" appid data is reset\n");
+        if (!write_to_file(ss.str()))
+            LogMessage("%s", ss.str().c_str());
+
         return;
     }
 
@@ -75,11 +80,12 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 
     if (config.json_logging)
     {
-        std::ostringstream ss;
+        ostringstream ss;
         JsonStream js(ss);
         print_json_message(js, cli_ip_str, srv_ip_str, *flow, packet_num, api, service,
             client, payload, misc, referred, is_http2, http2_stream_index, appid_event.get_packet());
-        LogMessage("%s", ss.str().c_str());
+        if (!write_to_file(ss.str()))
+            LogMessage("%s", ss.str().c_str());
     }
     else
         print_message(cli_ip_str, srv_ip_str, *flow, packet_num, service, client,
@@ -88,19 +94,23 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 
 void AppIdListenerEventHandler::print_message(const char* cli_ip_str, const char* srv_ip_str,
     const Flow& flow, PegCount packet_num, AppId service, AppId client, AppId payload, AppId misc,
-    AppId referred) const
+    AppId referred)
 {
     print_header(cli_ip_str, srv_ip_str, flow.client_port, flow.server_port, flow.ip_proto,
         packet_num);
 
-    LogMessage(" service: %d client: %d payload: %d misc: %d referred: %d\n",
-        service, client, payload, misc, referred);
+    ostringstream ss;
+    ss << " service: " << service << " client: " << client << " payload: " <<
+        payload << " misc: " << misc << " referred: " << referred << endl;
+
+    if (!write_to_file(ss.str()))
+        LogMessage("%s", ss.str().c_str());
 }
 
 void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* cli_ip_str,
     const char* srv_ip_str, const Flow& flow, PegCount packet_num, const AppIdSessionApi& api,
     AppId service, AppId client, AppId payload, AppId misc, AppId referred,
-    bool is_http2, uint32_t http2_stream_index, const Packet* p) const
+    bool is_http2, uint32_t http2_stream_index, const Packet* p)
 {
     assert(p);
     char timebuf[TIMEBUF_SIZE];
@@ -157,7 +167,7 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         const char* version_str = api.get_client_version(http2_stream_index);
 
         if (is_http2)
-            js.put("http2_stream", std::to_string(hsession->get_http2_stream_id()));
+            js.put("http2_stream", to_string(hsession->get_http2_stream_id()));
         else
             js.put("http2_stream", nullptr);
         js.put("host", host);
