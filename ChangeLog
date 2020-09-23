@@ -1,3 +1,9 @@
+2020/09/23 - 3.0.3 build 1
+
+-- appid_listener: Support writing appid data to file
+-- appid_listener: Update function header for third party reset
+-- cmake: Support cmake build type configuration
+
 2020/09/13 - 3.0.2 build 6
 
 -- appid_listener: Support json logging
