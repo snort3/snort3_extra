@@ -81,18 +81,6 @@ private:
         }
     }
 
-    void print_json_header(snort::JsonStream& js, const char* cli_ip_str,
-        const char* srv_ip_str, uint16_t client_port, uint16_t server_port, uint8_t ip_proto,
-        PegCount packet_number) const
-    {
-        js.put("client_ip", cli_ip_str);
-        js.put("client_port", client_port);
-        js.put("server_ip", srv_ip_str);
-        js.put("server_port", server_port);
-        js.put("proto", get_proto_str(ip_proto));
-        js.put("packet_num", packet_number);
-    }
-
     void print_header(const char* cli_ip_str, const char* srv_ip_str, uint16_t client_port,
         uint16_t server_port, uint8_t ip_proto, PegCount packet_number)
     {
