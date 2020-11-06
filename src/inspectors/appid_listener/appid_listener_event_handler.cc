@@ -118,22 +118,59 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
     js.open();
     js.put("session_num", api.get_session_id());
     js.put("pkt_time", timebuf);
-
-    print_json_header(js, cli_ip_str, srv_ip_str, flow.client_port, flow.server_port,
-        flow.ip_proto, packet_num);
+    js.put("pkt_num", packet_num);
 
     const char* service_str = appid_api.get_application_name(service, flow);
     const char* client_str = appid_api.get_application_name(client, flow);
     const char* payload_str = appid_api.get_application_name(payload, flow);
     const char* misc_str = appid_api.get_application_name(misc, flow);
     const char* referred_str = appid_api.get_application_name(referred, flow);
-
     js.open("apps");
     js.put("service", service_str);
     js.put("client", client_str);
     js.put("payload", payload_str);
     js.put("misc", misc_str);
     js.put("referred", referred_str);
+    js.close();
+
+    js.put("proto", get_proto_str(flow.ip_proto));
+
+    js.open("client_info");
+    js.put("ip", cli_ip_str);
+    js.put("port", flow.client_port);
+    js.put("version", api.get_client_info(http2_stream_index));
+    js.close();
+
+    const char* vendor;
+    const char* version;
+    const AppIdServiceSubtype* subtype;
+    api.get_service_info(vendor, version, subtype);
+    js.open("service_info");
+    js.put("ip", srv_ip_str);
+    js.put("port", flow.server_port);
+    js.put("version", version);
+    js.put("vendor", vendor);
+    while (subtype)
+    {
+        js.open("subtype");
+        js.put("service", subtype->service);
+        js.put("vendor", subtype->vendor);
+        js.put("version", subtype->version);
+        js.close();
+        subtype = subtype->next;
+    }
+    js.close();
+
+    bool login_status = false;
+    AppId id;
+    const char* username = api.get_user_info(id, login_status);
+    js.open("user_info");
+    js.put("id", id);
+    js.put("username", username);
+    if (username)
+        js.put("login_status", login_status ? "success" : "failure");
+    else
+        js.put("login_status", "n/a");
     js.close();
 
     const char* tls_host = api.get_tls_host();
@@ -155,7 +192,6 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         js.put("user_agent");
         js.put("response_code");
         js.put("referrer");
-        js.put("client_version");
     }
     else
     {
@@ -164,7 +200,6 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         const char* user_agent = hsession->get_cfield(REQ_AGENT_FID);
         const char* response_code = hsession->get_cfield(MISC_RESP_CODE_FID);
         const char* referrer = hsession->get_cfield(REQ_REFERER_FID);
-        const char* version_str = api.get_client_version(http2_stream_index);
 
         if (is_http2)
             js.put("http2_stream", to_string(hsession->get_http2_stream_id()));
@@ -175,7 +210,6 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         js.put("user_agent", user_agent);
         js.put("response_code", response_code);
         js.put("referrer", referrer);
-        js.put("client_version", version_str);
     }
 
     js.close();
