@@ -76,6 +76,11 @@ public:
         return false;
     }
 
+    const string& get_user_config() const override { return user_config; }
+
+private:
+    string user_config = "";
+
 };
 
 class ThirdPartyAppIdSessionImpl : public ThirdPartyAppIdSession
