@@ -1,3 +1,7 @@
+2020/12/20 - 3.0.3 build 6
+
+-- appid: Update third party implementation for added get_user_config()
+
 2020/11/16 - 3.0.3 build 5
 
 -- appid: Log user information in listener output
