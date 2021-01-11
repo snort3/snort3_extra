@@ -68,7 +68,7 @@ public:
         return 0;
     }
 
-    bool tfini(bool, bool) override
+    bool tfini(bool) override
     {
         stringstream msg;
         msg << WhereMacro << ": per worker-thread context clean-up." << endl;
