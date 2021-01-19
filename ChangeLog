@@ -1,3 +1,7 @@
+2021/01/13 - 3.1.0.0
+
+-- appid: Update third party implementation for modified tfini()
+
 2020/12/20 - 3.0.3 build 6
 
 -- appid: Update third party implementation for added get_user_config()
