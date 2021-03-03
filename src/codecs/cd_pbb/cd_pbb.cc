@@ -122,7 +122,7 @@ void PbbCodec::log(TextLog* const text_log, const uint8_t* raw_pkt,
         pbb->ether_dst[4], pbb->ether_dst[5]);
 
     TextLog_Print(text_log, "  len:%hu", len);
-    TextLog_Print(text_log, "  type:0x%04X", pbb->ethertype());
+    TextLog_Print(text_log, "  type:0x%04X", static_cast<uint16_t>(pbb->ethertype()));
 }
 
 //-------------------------------------------------------------------------
