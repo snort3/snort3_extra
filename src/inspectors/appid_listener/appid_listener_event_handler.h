@@ -52,7 +52,7 @@ private:
         AppId, AppId, AppId, AppId, AppId);
     void print_json_message(snort::JsonStream&, const char*, const char*, const snort::Flow&,
         PegCount, const snort::AppIdSessionApi&, AppId, AppId, AppId, AppId, AppId, bool, uint32_t,
-        const snort::Packet*);
+        const snort::Packet*, const char*, const char*);
 
     bool appid_changed(const AppidChangeBits& ac_bits) const
     {
