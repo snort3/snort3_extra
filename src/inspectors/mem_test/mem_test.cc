@@ -112,7 +112,7 @@ void MemTestData::deallocate(size_t n)
 class MemTest : public Inspector
 {
 public:
-    MemTest() { }
+    MemTest() = default;
 
     void eval(Packet*) override;
 
