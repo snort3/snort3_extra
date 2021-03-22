@@ -78,12 +78,16 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     AppId misc = api.get_misc_app_id(http2_stream_index);
     AppId referred = api.get_referred_app_id(http2_stream_index);
 
+    const char *netbios_name = api.get_netbios_name();
+    const char *netbios_domain = api.get_netbios_domain();
+
     if (config.json_logging)
     {
         ostringstream ss;
         JsonStream js(ss);
         print_json_message(js, cli_ip_str, srv_ip_str, *flow, packet_num, api, service,
-            client, payload, misc, referred, is_http2, http2_stream_index, appid_event.get_packet());
+            client, payload, misc, referred, is_http2, http2_stream_index, appid_event.get_packet(),
+            netbios_name, netbios_domain);
         if (!write_to_file(ss.str()))
             LogMessage("%s", ss.str().c_str());
     }
@@ -110,7 +114,8 @@ void AppIdListenerEventHandler::print_message(const char* cli_ip_str, const char
 void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* cli_ip_str,
     const char* srv_ip_str, const Flow& flow, PegCount packet_num, const AppIdSessionApi& api,
     AppId service, AppId client, AppId payload, AppId misc, AppId referred,
-    bool is_http2, uint32_t http2_stream_index, const Packet* p)
+    bool is_http2, uint32_t http2_stream_index, const Packet* p, const char* netbios_name,
+    const char* netbios_domain)
 {
     assert(p);
     char timebuf[TIMEBUF_SIZE];
@@ -181,8 +186,12 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         dns_host = api.get_dns_session()->get_host();
     js.put("dns_host", dns_host);
 
-    const AppIdHttpSession* hsession = api.get_http_session(http2_stream_index);
+    js.open("netbios_info");
+    js.put("netbios_name", netbios_name);
+    js.put("netbios_domain", netbios_domain);
+    js.close();
 
+    const AppIdHttpSession* hsession = api.get_http_session(http2_stream_index);
     js.open("http");
     if (!hsession)
     {
