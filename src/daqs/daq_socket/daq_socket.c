@@ -372,9 +372,6 @@ static void set_pkt_hdr(SocketContext* socket_context, SocketMsgDesc* desc, ssiz
         clear(socket_context);
 }
 
-// forward all but drops, retries and blacklists:
-static const int s_fwd[MAX_DAQ_VERDICT] = { 1, 0, 1, 1, 0, 1, 0 };
-
 static unsigned socket_daq_read_message(
     SocketContext* socket_context, SocketMsgDesc* desc, DAQ_RecvStatus* rstat)
 {
@@ -634,6 +631,9 @@ static unsigned socket_daq_msg_receive(void* handle, const unsigned max_recv, co
 
     return idx;
 }
+
+// forward all but drops and blacklists
+static const int s_fwd[MAX_DAQ_VERDICT] = { 1, 0, 1, 1, 0, 1 };
 
 static int socket_daq_msg_finalize(void* handle, const DAQ_Msg_t* msg, DAQ_Verdict verdict)
 {
