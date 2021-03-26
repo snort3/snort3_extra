@@ -89,7 +89,7 @@ const uint8_t* HttpEvent::get_host(int32_t& len)
 
 static unsigned s_alerts = 0;
 
-int DetectionEngine::queue_event(unsigned, unsigned, Actions::Type)
+int DetectionEngine::queue_event(unsigned, unsigned, uint8_t)
 {
     ++s_alerts;
     return 0;
