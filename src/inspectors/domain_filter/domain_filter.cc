@@ -176,7 +176,7 @@ void HttpHandler::handle(DataEvent& de, Flow*)
     HttpEvent* he = (HttpEvent*)&de;
 
     int32_t len;
-    const char* s = (const char*)he->get_authority(len);
+    const char* s = (const char*)he->get_uri_host(len);
 
     if ( !s or len < 1 )
         return;
