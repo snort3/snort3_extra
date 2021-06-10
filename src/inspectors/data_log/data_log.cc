@@ -84,7 +84,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
     s = he->get_server(n);
     log(s, n);
 
-    s = he->get_host(n);
+    s = he->get_authority(n);
     log(s, n);
 
     s = he->get_uri(n);
