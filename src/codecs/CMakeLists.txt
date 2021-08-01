@@ -1,3 +1,5 @@
+set (CODEC_INSTALL_PATH "${PLUGIN_INSTALL_PATH}/codecs")
+
 add_subdirectory ( cd_eapol )
 add_subdirectory ( cd_linux_sll )
 add_subdirectory ( cd_null )

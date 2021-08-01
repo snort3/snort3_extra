@@ -39,5 +39,5 @@ target_include_directories (
 install (
     TARGETS alert_ex
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/loggers"
+        DESTINATION "${LOGGER_INSTALL_PATH}"
 )

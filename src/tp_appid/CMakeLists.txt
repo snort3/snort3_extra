@@ -41,5 +41,5 @@ target_include_directories (
 install (
     TARGETS tp_appid_example
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/tp_appid"
+        DESTINATION "${LIB_INSTALL_PATH}/misc/${CMAKE_PROJECT_NAME}"
 )

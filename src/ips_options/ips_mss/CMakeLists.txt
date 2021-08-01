@@ -39,5 +39,5 @@ target_include_directories (
 install (
     TARGETS ips_mss
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/ips_options"
+        DESTINATION "${IPS_OPTION_INSTALL_PATH}"
 )

@@ -35,7 +35,7 @@
 #include <daq_module_api.h>
 #include <daq_dlt.h>
 
-#include <daqs/daq_user.h>
+#include <daq/daq_user.h>
 
 #define DAQ_MOD_VERSION 1
 #define DAQ_NAME "socket"

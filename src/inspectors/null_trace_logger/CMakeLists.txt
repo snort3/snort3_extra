@@ -39,6 +39,6 @@ target_include_directories (
 install (
     TARGETS null_trace_logger
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/snort_plugins"
+        DESTINATION "${INSPECTOR_INSTALL_PATH}"
 )
 

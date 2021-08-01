@@ -40,5 +40,5 @@ target_include_directories (
 install (
     TARGETS sid_18758
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/so_rules"
+        DESTINATION "${SO_RULE_INSTALL_PATH}"
 )

@@ -39,5 +39,5 @@ target_include_directories (
 install (
     TARGETS mem_test
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/inspectors"
+        DESTINATION "${INSPECTOR_INSTALL_PATH}"
 )

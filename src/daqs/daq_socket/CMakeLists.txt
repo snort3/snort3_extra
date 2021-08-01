@@ -39,5 +39,5 @@ target_include_directories (
 install (
     TARGETS daq_socket
     LIBRARY
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/daqs"
+        DESTINATION "${DAQ_INSTALL_PATH}"
 )
