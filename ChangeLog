@@ -1,3 +1,7 @@
+2021/08/11 - 3.1.10.0
+
+build: install DAQ modules and Snort plugins in separate folders
+
 2021/07/28 - 3.1.9.0
 
 No changes.
