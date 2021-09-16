@@ -43,9 +43,6 @@ public:
     static void init()
     { data_id = FlowData::create_flow_data_id(); }
 
-    size_t size_of() override
-    { return size; }
-
     void allocate(size_t);
     void deallocate(size_t);
 
@@ -67,18 +64,14 @@ MemTestData::MemTestData(size_t n) : FlowData(data_id)
 MemTestData::~MemTestData()
 {
     for ( auto* p : data )
-    {
-        size_t n = (size_t)atoi(p);
         delete[] p;
-        update_deallocations(n);
-    }
+
     delete[] base;
 }
 
 void MemTestData::allocate(size_t n)
 {
     if ( n < 32 ) n = 32;
-    update_allocations(n);
     char* p = new char[n];
     snprintf(p, n, "%zu", n);
     data.push_back(p);
@@ -99,7 +92,6 @@ void MemTestData::deallocate(size_t n)
 
         assert(size >= n);
         size -= n;
-        update_deallocations(n);
 
         return;
     }
