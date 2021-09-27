@@ -113,7 +113,7 @@ public:
             if (!config->file_stream.is_open())
                 WarningMessage("appid_listener: can't open file %s\n", config->file_name.c_str());
         }
-        DataBus::subscribe(APPID_EVENT_ANY_CHANGE, new AppIdListenerEventHandler(*config));
+        DataBus::subscribe_network(APPID_EVENT_ANY_CHANGE, new AppIdListenerEventHandler(*config));
         return true;
     }
 
