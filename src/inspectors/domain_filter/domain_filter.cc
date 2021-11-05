@@ -149,9 +149,6 @@ bool DomainFilterModule::set(const char* fqn, Value& v, SnortConfig* sc)
         while ( v.get_next_token(tok) )
             hosts.push_back(tok);
     }
-    else
-        return Module::set(fqn, v, sc);
-
     return true;
 }
 
