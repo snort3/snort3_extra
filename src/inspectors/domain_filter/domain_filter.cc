@@ -18,10 +18,6 @@
 
 // domain_filter.cc author Russ Combs <rucombs@cisco.com>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <cassert>
 #include <cerrno>
 
@@ -125,7 +121,7 @@ public:
     DomainList hosts;
 };
 
-bool DomainFilterModule::set(const char* fqn, Value& v, SnortConfig* sc)
+bool DomainFilterModule::set(const char*, Value& v, SnortConfig*)
 {
     if ( v.is("file") )
     {

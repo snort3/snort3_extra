@@ -18,10 +18,6 @@
 
 // cd_pbb.cc author Russ Combs <rucombs@cisco.com>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <daq_dlt.h>
 
 #include "codecs/codec_module.h"
