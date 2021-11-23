@@ -147,9 +147,6 @@ bool DpxModule::set(const char*, Value& v, SnortConfig*)
     else if ( v.is("max") )
         max = v.get_long();
 
-    else
-        return false;
-
     return true;
 }
 

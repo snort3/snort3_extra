@@ -61,12 +61,8 @@ public:
 
 bool ExModule::set(const char*, Value& v, SnortConfig*)
 {
-    if ( v.is("upper") )
-        upper = v.get_bool();
-
-    else
-        return false;
-
+    assert(v.is("upper"));
+    upper = v.get_bool();
     return true;
 }
 

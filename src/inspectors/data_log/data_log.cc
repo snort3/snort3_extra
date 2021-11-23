@@ -189,9 +189,6 @@ bool DataLogModule::set(const char*, Value& v, SnortConfig*)
     else if ( v.is("limit") )
         limit = v.get_uint32() * M_BYTES;
 
-    else
-        return false;
-
     return true;
 }
 
