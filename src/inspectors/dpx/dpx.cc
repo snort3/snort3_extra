@@ -142,10 +142,10 @@ public:
 bool DpxModule::set(const char*, Value& v, SnortConfig*)
 {
     if ( v.is("port") )
-        port = v.get_long();
+        port = v.get_uint16();
 
     else if ( v.is("max") )
-        max = v.get_long();
+        max = v.get_uint16();
 
     return true;
 }
