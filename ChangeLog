@@ -1,3 +1,11 @@
+2021/12/01 - 3.1.18.0
+
+appid_listener: subscribe to the network data bus
+build: remove config.h includes since not present
+build: remove unreachable code
+dpx: replace Value::get_long() with a platform-independent type
+memory: remove explicit allocation tracking
+
 2021/11/17 - 3.1.17.0
 
 rna: inspector to validate publishing rna cpe os event
