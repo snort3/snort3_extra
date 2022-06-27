@@ -22,9 +22,9 @@
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
-#include "main/snort_debug.h"
 #include "profiler/profiler.h"
 #include "protocols/packet.h"
+#include "trace/trace_api.h"
 
 using namespace snort;
 
