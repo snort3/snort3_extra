@@ -1,66 +1,10 @@
-2022/07/14 - 3.1.36.0
-
-No changes.
-
 2022/06/30 - 3.1.33.0
 
 dpx: update includes for trace API
 
-2022/06/16 - 3.1.32.0
-
-No changes.
-
-2022/06/02 - 3.1.31.0
-
-No changes.
-
-2022/05/19 - 3.1.30.0
-
-No changes.
-
-2022/05/04 - 3.1.29.0
-
-No changes.
-
-2022/04/25 - 3.1.28.0
-
-No changes.
-
-2022/04/07 - 3.1.27.0
-
-No changes.
-
-2022/03/23 - 3.1.26.0
-
-No changes.
-
-2022/03/09 - 3.1.25.0
-
-No changes.
-
-2022/02/23 - 3.1.24.0
-
-No changes.
-
-2022/02/09 - 3.1.23.0
-
-No changes.
-
-2022/01/31 - 3.1.22.0
-
-No changes.
-
 2022/01/25 - 3.1.21.0
 
 copyright: Update year to 2022
-
-2022/01/12 - 3.1.20.0
-
-No changes.
-
-2021/12/15 - 3.1.19.0
-
-No changes.
 
 2021/12/01 - 3.1.18.0
 
@@ -74,58 +18,14 @@ memory: remove explicit allocation tracking
 
 rna: inspector to validate publishing rna cpe os event
 
-2021/11/03 - 3.1.16.0
-
-No changes.
-
-2021/10/21 - 3.1.15.0
-
-No changes.
-
-2021/10/07 - 3.1.14.0
-
-No changes.
-
-2021/09/22 - 3.1.13.0
-
-No changes.
-
-2021/09/08 - 3.1.12.0
-
-No changes.
-
-2021/08/26 - 3.1.11.0
-
-No changes.
-
 2021/08/11 - 3.1.10.0
 
 build: install DAQ modules and Snort plugins in separate folders
-
-2021/07/28 - 3.1.9.0
-
-No changes.
-
-2021/07/15 - 3.1.8.0
-
-No changes.
-
-2021/06/30 - 3.1.7.0
-
-No changes.
 
 2021/06/16 - 3.1.6.0
 
 domain_filter: use uri-host instead of authority
 inspectors: update HttpEvent:get_host() to get_authority()
-
-2021/05/20 - 3.1.5.0
-
-No changes.
-
-2021/04/21 - 3.1.4.0
-
-No changes.
 
 2021/03/27 - 3.1.3.0
 
@@ -150,14 +50,6 @@ No changes.
 
 -- appid: Log user information in listener output
 
-2020/10/27 - 3.0.3 build 4
-
-No changes.
-
-2020/10/22 - 3.0.3 build 3
-
-No changes.
-
 2020/10/07 - 3.0.3 build 2
 
 -- appid: Update for third party API changes
@@ -172,14 +64,6 @@ No changes.
 2020/09/13 - 3.0.2 build 6
 
 -- appid_listener: Support json logging
-
-2020/08/12 - 3.0.2 build 5
-
-No changes.
-
-2020/08/06 - 3.0.2 build 4
-
-No changes.
 
 2020/07/28 - 3.0.2 build 3
 
@@ -210,10 +94,6 @@ No changes.
 -- rt_service: The reg test service inspector splitter is a paf splitter so return true from
    is_paf()
 -- snort_config: Constify Inspector::show and remove unnecessary logger args
-
-2020/05/06 - 3.0.1 build 3
-
-No changes.
 
 2020/04/23 - 3.0.1 build 2
 
@@ -246,14 +126,6 @@ No changes.
 -- copyright: Update year to 2020
 -- inspectors: Remove printing module name in inspectors ::show() method
 
-2019/12/20 - build 267
-
-No changes.
-
-2019/12/04 - build 266
-
-No changes.
-
 2019/11/22 - build 265
 
 -- rt_global_inspector: Updates to build with latest changes to ReloadResourceTuner base class
@@ -261,10 +133,6 @@ No changes.
 2019/11/06 - build 264
 
 -- inspectors: Update reg test global inspectors to match changes in reload resource tuner api
-
-2019/10/31 - build 263
-
-No changes.
 
 2019/10/09 - build 262
 
@@ -315,14 +183,6 @@ No changes.
 2019/05/03 - build 255
 
 -- test: Remove cruft
-
-2019/04/26 - build 254
-
-No changes.
-
-2019/04/17 - build 253
-
-No changes.
 
 2019/04/10 - build 252
 
