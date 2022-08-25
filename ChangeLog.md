@@ -1,3 +1,7 @@
+2022-08-25 3.1.40.0
+
+    ChangeLog: change to md format
+
 2022-06-30: 3.1.33.0
 
 * dpx: update includes for trace API
