@@ -68,15 +68,15 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     const AppIdSessionApi& api = appid_event.get_appid_session_api();
     AppId service = api.get_service_app_id();
     PegCount packet_num = get_packet_number();
-    uint32_t http2_stream_index = 0;
-    bool is_http2 = appid_event.get_is_http2();
-    if (is_http2)
-        http2_stream_index = appid_event.get_http2_stream_index();
+    uint32_t httpx_stream_index = 0;
+    bool is_httpx = appid_event.get_is_httpx();
+    if (is_httpx)
+        httpx_stream_index = appid_event.get_httpx_stream_index();
 
-    AppId client = api.get_client_app_id(http2_stream_index);
-    AppId payload = api.get_payload_app_id(http2_stream_index);
-    AppId misc = api.get_misc_app_id(http2_stream_index);
-    AppId referred = api.get_referred_app_id(http2_stream_index);
+    AppId client = api.get_client_app_id(httpx_stream_index);
+    AppId payload = api.get_payload_app_id(httpx_stream_index);
+    AppId misc = api.get_misc_app_id(httpx_stream_index);
+    AppId referred = api.get_referred_app_id(httpx_stream_index);
 
     const char *netbios_name = api.get_netbios_name();
     const char *netbios_domain = api.get_netbios_domain();
@@ -86,7 +86,7 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
         ostringstream ss;
         JsonStream js(ss);
         print_json_message(js, cli_ip_str, srv_ip_str, *flow, packet_num, api, service,
-            client, payload, misc, referred, is_http2, http2_stream_index, appid_event.get_packet(),
+            client, payload, misc, referred, is_httpx, httpx_stream_index, appid_event.get_packet(),
             netbios_name, netbios_domain);
         if (!write_to_file(ss.str()))
             LogMessage("%s", ss.str().c_str());
@@ -114,7 +114,7 @@ void AppIdListenerEventHandler::print_message(const char* cli_ip_str, const char
 void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* cli_ip_str,
     const char* srv_ip_str, const Flow& flow, PegCount packet_num, const AppIdSessionApi& api,
     AppId service, AppId client, AppId payload, AppId misc, AppId referred,
-    bool is_http2, uint32_t http2_stream_index, const Packet* p, const char* netbios_name,
+    bool is_httpx, uint32_t httpx_stream_index, const Packet* p, const char* netbios_name,
     const char* netbios_domain)
 {
     assert(p);
@@ -143,7 +143,7 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
     js.open("client_info");
     js.put("ip", cli_ip_str);
     js.put("port", flow.client_port);
-    js.put("version", api.get_client_info(http2_stream_index));
+    js.put("version", api.get_client_info(httpx_stream_index));
     js.close();
 
     const char* vendor;
@@ -191,11 +191,11 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
     js.put("netbios_domain", netbios_domain);
     js.close();
 
-    const AppIdHttpSession* hsession = api.get_http_session(http2_stream_index);
+    const AppIdHttpSession* hsession = api.get_http_session(httpx_stream_index);
     js.open("http");
     if (!hsession)
     {
-        js.put("http2_stream");
+        js.put("httpx_stream");
         js.put("host");
         js.put("url");
         js.put("user_agent");
@@ -210,10 +210,10 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
         const char* response_code = hsession->get_cfield(MISC_RESP_CODE_FID);
         const char* referrer = hsession->get_cfield(REQ_REFERER_FID);
 
-        if (is_http2)
-            js.put("http2_stream", to_string(hsession->get_http2_stream_id()));
+        if (is_httpx)
+            js.put("httpx_stream", to_string(hsession->get_httpx_stream_id()));
         else
-            js.put("http2_stream", nullptr);
+            js.put("httpx_stream", nullptr);
         js.put("host", host);
         js.put("url", url);
         js.put("user_agent", user_agent);
