@@ -1,6 +1,10 @@
+2022-09-22: 3.1.42.0
+
+* appid_listener: made the listener http(2,3) version agnostic
+
 2022-08-25 3.1.40.0
 
-    ChangeLog: change to md format
+* changeLog: change to md format
 
 2022-06-30: 3.1.33.0
 
