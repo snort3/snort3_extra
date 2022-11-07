@@ -36,6 +36,7 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 
     AppidChangeBits temp_ac_bits = ac_bits;
     temp_ac_bits.reset(APPID_CREATED_BIT);
+    temp_ac_bits.reset(APPID_DISCOVERY_FINISHED_BIT);
     if (temp_ac_bits.none())
         return;
 
