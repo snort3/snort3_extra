@@ -1,3 +1,7 @@
+2022-11-17: 3.1.47.0
+
+* appid: do not write out finished events
+
 2022-09-22: 3.1.42.0
 
 * appid_listener: made the listener http(2,3) version agnostic
