@@ -195,6 +195,8 @@ class DomainFilter : public Inspector
 {
 public:
     DomainFilter(DomainList&);
+
+    bool configure(SnortConfig*) override;
     void show(const SnortConfig*) const override;
     void eval(Packet*) override { }
 
@@ -206,9 +208,14 @@ DomainFilter::DomainFilter(DomainList& sv)
 {
     hosts.insert(sv.begin(), sv.end());
     sv.clear();
+}
 
+bool DomainFilter::configure(SnortConfig*)
+{
     if ( !hosts.empty() )
-        DataBus::subscribe(HTTP_REQUEST_HEADER_EVENT_KEY, new HttpHandler(hosts));
+        DataBus::subscribe(http_pub_key, HttpEventIds::REQUEST_HEADER, new HttpHandler(hosts));
+
+    return true;
 }
 
 void DomainFilter::show(const SnortConfig*) const

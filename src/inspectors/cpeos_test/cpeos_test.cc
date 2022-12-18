@@ -24,6 +24,7 @@
 #include "network_inspectors/rna/rna_cpe_os.h"
 #include "protocols/eth.h"
 #include "protocols/packet.h"
+#include "pub_sub/external_event_ids.h"
 
 using namespace snort;
 
@@ -39,14 +40,24 @@ class CpeOsTest : public Inspector
 public:
     CpeOsTest() = default;
     void eval(Packet*) override;
+    bool configure(SnortConfig*) override;
+
+private:
+    unsigned pub_id = 0;
 };
+
+bool CpeOsTest::configure(SnortConfig*)
+{
+    pub_id = DataBus::get_id(external_pub_key);
+    return true;
+}
 
 void CpeOsTest::eval(Packet* p)
 {
     CpeOsInfoEvent cpe(*p);
     cpe.add_os("cpe:2.3:o:microsoft:windows_10:1507:*:*:*:*:*:*:*");
     cpe.add_os("cpe:2.3:o:microsoft:windows_10:1703:*:*:*:*:*:*:*");
-    DataBus::publish(CPE_OS_INFO_EVENT, cpe, p->flow);
+    DataBus::publish(pub_id, ExternalEventIds::CPE_OS_INFO, cpe, p->flow);
 }
 
 class CpeOsTestModule : public Module

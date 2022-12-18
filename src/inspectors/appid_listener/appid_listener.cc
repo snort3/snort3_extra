@@ -27,6 +27,7 @@
 #include "main/snort_config.h"
 #include "main/snort_types.h"
 #include "profiler/profiler.h"
+#include "pub_sub/appid_event_ids.h"
 #include "pub_sub/http_events.h"
 #include "time/packet_time.h"
 
@@ -113,7 +114,7 @@ public:
             if (!config->file_stream.is_open())
                 WarningMessage("appid_listener: can't open file %s\n", config->file_name.c_str());
         }
-        DataBus::subscribe_network(APPID_EVENT_ANY_CHANGE, new AppIdListenerEventHandler(*config));
+        DataBus::subscribe_network(appid_pub_key, AppIdEventIds::ANY_CHANGE, new AppIdListenerEventHandler(*config));
         return true;
     }
 

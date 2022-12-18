@@ -115,7 +115,8 @@ public:
 
     bool configure(SnortConfig*) override
     {
-        DataBus::subscribe(key.c_str(), new LogHandler(key));
+        unsigned eid = key == "http_request_header_event" ? HttpEventIds::REQUEST_HEADER : HttpEventIds::RESPONSE_HEADER;
+        DataBus::subscribe(http_pub_key, eid, new LogHandler(key));
         return true;
     }
 
