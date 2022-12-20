@@ -1,3 +1,7 @@
+2022-12-20: 3.1.50.0
+
+* appid, data_log, cpeos, domain_filter: convert to use Snort's new PubKey
+
 2022-11-17: 3.1.47.0
 
 * appid: do not write out finished events
