@@ -1,3 +1,7 @@
+2023-02-22: 3.1.56.0
+
+* copyright: update for year 2023
+
 2022-12-20: 3.1.50.0
 
 * appid, data_log, cpeos, domain_filter: convert to use Snort's new PubKey
