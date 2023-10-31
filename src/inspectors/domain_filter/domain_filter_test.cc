@@ -113,7 +113,8 @@ bool Inspector::get_buf(char const*, Packet*, InspectionBuffer&)
     return false;
 }
 
-Inspector::Inspector() { }
+Inspector::Inspector() : ref_count(nullptr)
+{ }
 Inspector::~Inspector() { }
 
 void show_stats(PegCount*, const PegInfo*, unsigned, const char*) { }
@@ -126,17 +127,18 @@ void Module::show_interval_stats(IndexVec&, FILE*) { }
 bool Module::set(char const*, Value&, SnortConfig*) { return false; }
 void Module::sum_stats(bool) { }
 
-Module::Module(const char* n, const char* h, const Parameter* p, bool, Trace*)
-{ name = n; help = h; params = p; }
+Module::Module(const char* n, const char* h, const Parameter* p, bool) : name(n), help(h), params(p), list(false)
+{ }
 
-MemoryContext::MemoryContext(MemoryTracker&) { }
+MemoryContext::MemoryContext(MemoryTracker&) : saved(nullptr)
+{ }
 MemoryContext::~MemoryContext() { }
 
 //--------------------------------------------------------------------------
 
 TEST_GROUP(domain_filter_base)
 {
-    const BaseApi* api;
+    const BaseApi* api; // cppcheck-suppress variableScope
 
     void setup() override
     {
@@ -161,13 +163,13 @@ TEST(domain_filter_base, base)
 
 TEST_GROUP(domain_filter_ins)
 {
-    const InspectApi* api;
+    const InspectApi* api;  // cppcheck-suppress variableScope
 
     void setup() override
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
-        api = (InspectApi*)snort_plugins[0];
+        api = (InspectApi*)snort_plugins[0];    // cppcheck-suppress unreadVariable
     }
 };
 
@@ -225,8 +227,8 @@ TEST(domain_filter_ins, basic)
 TEST_GROUP(domain_filter_events)
 {
     const InspectApi* api;
-    Inspector* ins;
-    Module* mod;
+    Inspector* ins; // cppcheck-suppress variableScope
+    Module* mod;    // cppcheck-suppress variableScope
 
     void setup() override
     {

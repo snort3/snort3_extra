@@ -135,8 +135,8 @@ public:
     const TraceOption* get_trace_options() const override;
 
 public:
-    uint16_t port;
-    uint16_t max;
+    uint16_t port = 0;
+    uint16_t max = 0;
 };
 
 bool DpxModule::set(const char*, Value& v, SnortConfig*)

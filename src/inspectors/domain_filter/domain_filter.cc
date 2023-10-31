@@ -165,7 +165,7 @@ private:
 
 void HttpHandler::handle(DataEvent& de, Flow*)
 {
-    Profile profile(s_prof);
+    Profile profile(s_prof);    // cppcheck-suppress unreadVariable
     HttpEvent* he = (HttpEvent*)&de;
 
     int32_t len;
@@ -221,9 +221,9 @@ bool DomainFilter::configure(SnortConfig*)
 void DomainFilter::show(const SnortConfig*) const
 {
     DomainList domain_list;
+    domain_list.reserve(hosts.size());
 
-    for (const auto& host : hosts)
-        domain_list.push_back(host);
+    std::copy(hosts.begin(), hosts.end(), std::back_inserter(domain_list));
     std::sort(domain_list.begin(), domain_list.end());
 
     std::string sorted_hosts;

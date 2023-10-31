@@ -39,8 +39,8 @@ static THREAD_LOCAL ProfileStats pkt_num_perf_stats;
 class PktNumOption : public IpsOption
 {
 public:
-    PktNumOption(const RangeCheck& c) : IpsOption(s_name)
-    { config = c; }
+    PktNumOption(const RangeCheck& c) : IpsOption(s_name), config(c)
+    { }
 
     uint32_t hash() const override;
     bool operator==(const IpsOption&) const override;
@@ -76,7 +76,7 @@ bool PktNumOption::operator==(const IpsOption& ips) const
 
 IpsOption::EvalStatus PktNumOption::eval(Cursor&, Packet*)
 {
-    Profile profile(pkt_num_perf_stats);
+    Profile profile(pkt_num_perf_stats);    // cppcheck-suppress unreadVariable
 
     if ( config.eval(get_packet_number()) )
         return MATCH;

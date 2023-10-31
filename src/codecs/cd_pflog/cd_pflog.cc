@@ -56,18 +56,6 @@ public:
     void get_data_link_type(std::vector<int>&) override;
 };
 
-struct Pflog1Hdr
-{
-    uint32_t af;
-    char intf[IFNAMSIZ];
-    int16_t rule;
-    uint16_t reason;
-    uint16_t action;
-    uint16_t dir;
-};
-
-#define PFLOG1_HDRLEN (sizeof(struct _Pflog1_hdr))
-
 /*
  * Note that on OpenBSD, af type is sa_family_t. On Linux, that's an unsigned
  * short, but on OpenBSD, that's a uint8_t, so we should explicitly use uint8_t

@@ -40,8 +40,8 @@ static THREAD_LOCAL ProfileStats tcpUrgPerfStats;
 class TcpUrgOption : public IpsOption
 {
 public:
-    TcpUrgOption(const RangeCheck& c) : IpsOption(s_name)
-    { config = c; }
+    TcpUrgOption(const RangeCheck& c) : IpsOption(s_name), config(c)
+    { }
 
     uint32_t hash() const override;
     bool operator==(const IpsOption&) const override;
@@ -77,7 +77,7 @@ bool TcpUrgOption::operator==(const IpsOption& ips) const
 
 IpsOption::EvalStatus TcpUrgOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpUrgPerfStats);
+    Profile profile(tcpUrgPerfStats);   // cppcheck-suppress unreadVariable
 
     if ( p->ptrs.tcph and p->ptrs.tcph->are_flags_set(TH_URG) and
         config.eval(p->ptrs.tcph->urp()) )

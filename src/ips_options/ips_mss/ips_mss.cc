@@ -41,8 +41,8 @@ static THREAD_LOCAL ProfileStats tcpMssPerfStats;
 class TcpMssOption : public IpsOption
 {
 public:
-    TcpMssOption(const RangeCheck& c) : IpsOption(s_name)
-    { config = c; }
+    TcpMssOption(const RangeCheck& c) : IpsOption(s_name), config(c)
+    { }
 
     uint32_t hash() const override;
     bool operator==(const IpsOption&) const override;
@@ -96,7 +96,7 @@ static bool get_mss(Packet* p, uint16_t& mss)
 
 IpsOption::EvalStatus TcpMssOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpMssPerfStats);
+    Profile profile(tcpMssPerfStats);   // cppcheck-suppress unreadVariable
     uint16_t mss;
 
     if ( get_mss(p, mss) and config.eval(mss) )

@@ -41,8 +41,8 @@ static THREAD_LOCAL ProfileStats tcpWscalePerfStats;
 class TcpWscaleOption : public IpsOption
 {
 public:
-    TcpWscaleOption(const RangeCheck& c) : IpsOption(s_name)
-    { config = c; }
+    TcpWscaleOption(const RangeCheck& c) : IpsOption(s_name), config(c)
+    { }
 
     uint32_t hash() const override;
     bool operator==(const IpsOption&) const override;
@@ -96,7 +96,7 @@ static bool get_wscale(Packet* p, uint16_t& wscale)
 
 IpsOption::EvalStatus TcpWscaleOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpWscalePerfStats);
+    Profile profile(tcpWscalePerfStats);    // cppcheck-suppress unreadVariable
     uint16_t wscale;
 
     if ( get_wscale(p, wscale) and config.eval(wscale) )

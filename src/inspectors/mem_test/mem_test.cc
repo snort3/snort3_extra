@@ -63,7 +63,7 @@ MemTestData::MemTestData(size_t n) : FlowData(data_id)
 
 MemTestData::~MemTestData()
 {
-    for ( auto* p : data )
+    for ( const auto* p : data )
         delete[] p;
 
     delete[] base;
@@ -126,7 +126,7 @@ void MemTest::eval(Packet* p)
         return;
 
     size_t n = (size_t)atoi((const char*)(p->data) + 1);
-    
+
     switch (p->data[0])
     {
     case '^': begin(p->flow, n); break;

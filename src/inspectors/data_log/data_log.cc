@@ -43,8 +43,8 @@ static THREAD_LOCAL SimpleStats dl_stats;
 class LogHandler : public DataHandler
 {
 public:
-    LogHandler(const std::string& s) : DataHandler(s_name)
-    { key = s; }
+    LogHandler(const std::string& s) : DataHandler(s_name), key(s)
+    { }
 
     void handle(DataEvent& e, Flow*) override;
 
@@ -68,7 +68,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
     struct tm st;
     char buf[26];
     SfIpString ip_str;
-    
+
     gmtime_r(&pt, &st);
     asctime_r(&st, buf);
     buf[sizeof(buf)-2] = '\0';
@@ -80,7 +80,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
     HttpEvent* he = (HttpEvent*)&e;
     int32_t n;
     const uint8_t* s;
-    
+
     s = he->get_server(n);
     log(s, n);
 
@@ -93,7 +93,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
     n = he->get_response_code();
     if ( n > 0 )
         TextLog_Print(tlog, ", %d", n);
-    
+
     s = he->get_user_agent(n);
     log(s, n);
 
@@ -172,7 +172,7 @@ public:
 
 public:
     std::string key;
-    uint64_t limit;
+    uint64_t limit = 0;
 };
 
 bool DataLogModule::begin(const char*, int, SnortConfig*)
@@ -188,7 +188,7 @@ bool DataLogModule::set(const char*, Value& v, SnortConfig*)
         key = v.get_string();
 
     else if ( v.is("limit") )
-        limit = v.get_uint32() * M_BYTES;
+        limit = ((uint64_t)v.get_uint32()) * M_BYTES;
 
     return true;
 }

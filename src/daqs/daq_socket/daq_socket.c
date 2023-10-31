@@ -373,7 +373,7 @@ static void set_pkt_hdr(SocketContext* socket_context, SocketMsgDesc* desc, ssiz
 }
 
 static unsigned socket_daq_read_message(
-    SocketContext* socket_context, SocketMsgDesc* desc, DAQ_RecvStatus* rstat)
+    SocketContext* socket_context, SocketMsgDesc* desc, const DAQ_RecvStatus* rstat)
 {
     int* sock = socket_context->use_a ? &socket_context->sock_a : &socket_context->sock_b;
     struct sockaddr_in* psin = socket_context->use_a ? &socket_context->sin_a : &socket_context->sin_b;
@@ -741,7 +741,7 @@ DAQ_SO_PUBLIC DAQ_ModuleAPI_t DAQ_MODULE_DATA =
     .get_datalink_type = socket_daq_get_datalink_type,
     .config_load = NULL,
     .config_swap = NULL,
-    .config_free = NULL, 
+    .config_free = NULL,
     .msg_receive = socket_daq_msg_receive,
     .msg_finalize = socket_daq_msg_finalize,
     .get_msg_pool_info = socket_daq_get_msg_pool_info,

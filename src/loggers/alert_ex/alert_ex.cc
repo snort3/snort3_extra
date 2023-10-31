@@ -56,7 +56,7 @@ public:
     { return CONTEXT; }
 
 public:
-    bool upper;
+    bool upper = false;
 };
 
 bool ExModule::set(const char*, Value& v, SnortConfig*)
