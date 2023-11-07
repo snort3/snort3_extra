@@ -1,3 +1,7 @@
+2023-11-07: 3.1.74.0
+
+* codecs, daqs, inspectors, ips_options, loggers: fix cppcheck issues
+
 2023-02-22: 3.1.56.0
 
 * copyright: update for year 2023
