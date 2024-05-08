@@ -146,7 +146,7 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static IpsOption* urg_ctor(Module* p, OptTreeNode*)
+static IpsOption* urg_ctor(Module* p, IpsInfo&)
 {
     UrgModule* m = (UrgModule*)p;
     return new TcpUrgOption(m->data);

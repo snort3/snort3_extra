@@ -21,7 +21,6 @@
 
 #include <iostream>
 
-#include "detection/signature.h"
 #include "events/event.h"
 #include "framework/logger.h"
 #include "framework/module.h"
@@ -97,10 +96,10 @@ void ExLogger::alert(Packet*, const char* msg, const Event& e)
     else
         transform(s.begin(), s.end(), s.begin(), ::tolower);
 
-    cout << e.sig_info->gid << ":";
-    cout << e.sig_info->sid << ":";
-    cout << e.sig_info->rev << " ";
-    cout << s << endl;
+    uint32_t gid, sid, rev;
+    e.get_sig_ids(gid, sid, rev);
+
+    cout << gid << ":" << sid << ":" << rev << " " << s << endl;
 }
 
 //-------------------------------------------------------------------------

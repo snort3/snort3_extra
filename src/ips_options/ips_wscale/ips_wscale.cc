@@ -163,7 +163,7 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static IpsOption* wscale_ctor(Module* p, OptTreeNode*)
+static IpsOption* wscale_ctor(Module* p, IpsInfo&)
 {
     WscaleModule* m = (WscaleModule*)p;
     return new TcpWscaleOption(m->data);

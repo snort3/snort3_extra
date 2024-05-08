@@ -17,7 +17,6 @@ add_library (
     lowmem.cc
     sfksearch.cc
     sfksearch.h
-    trie_api.cc
 )
 
 if ( APPLE )

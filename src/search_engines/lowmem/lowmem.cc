@@ -29,14 +29,61 @@
 // lowmem.cc author Russ Combs <rucombs@cisco.com>
 
 #include "log/messages.h"
+#include "framework/module.h"
 #include "framework/mpse.h"
+#include "main/snort_types.h"
+#include "profiler/profiler.h"
 
 #include "sfksearch.h"
 
 using namespace snort;
 
+#define MOD_NAME "lowmem"
+#define MOD_HELP "Keyword Trie (low memory, low performance) MPSE"
+
+struct BnfaCounts
+{
+    PegCount searches;
+    PegCount matches;
+    PegCount bytes;
+};
+
+static THREAD_LOCAL BnfaCounts lm_counts;
+static THREAD_LOCAL ProfileStats lm_stats;
+
+const PegInfo lm_pegs[] =
+{
+    { CountType::SUM, "searches", "number of search attempts" },
+    { CountType::SUM, "matches", "number of times a match was found" },
+    { CountType::SUM, "bytes", "total bytes searched" },
+
+    { CountType::END, nullptr, nullptr }
+};
+
 //-------------------------------------------------------------------------
-// "lowmem"
+// module
+//-------------------------------------------------------------------------
+
+class LowmemModule : public Module
+{
+public:
+    LowmemModule() : Module(MOD_NAME, MOD_HELP) { }
+
+    ProfileStats* get_profile() const override
+    { return &lm_stats; }
+
+    const PegInfo* get_pegs() const override
+    { return lm_pegs; }
+
+    PegCount* get_counts() const override
+    { return (PegCount*)&lm_counts; }
+
+    Usage get_usage() const override
+    { return GLOBAL; }
+};
+
+//-------------------------------------------------------------------------
+// mpse
 //-------------------------------------------------------------------------
 
 class LowmemMpse : public Mpse
@@ -51,32 +98,45 @@ public:
     ~LowmemMpse() override
     { KTrieDelete(obj); }
 
-    int add_pattern(
-        const uint8_t* P, unsigned m, const PatternDescriptor& desc, void* user) override
-    {
-        return KTrieAddPattern(obj, P, m, desc.no_case, desc.negated, user);
-    }
+    int add_pattern(const uint8_t* P, unsigned m, const PatternDescriptor& desc, void* user) override
+    { return KTrieAddPattern(obj, P, m, desc.no_case, desc.negated, user); }
 
     int prep_patterns(SnortConfig* sc) override
-    {
-        return KTrieCompile(sc, obj);
-    }
-
-    int _search(
-        const uint8_t* T, int n, MpseMatch match,
-        void* context, int* current_state) override
-    {
-        *current_state = 0;
-        return KTrieSearch(obj, T, n, match, context);
-    }
+    { return KTrieCompile(sc, obj); }
 
     int get_pattern_count() const override
     { return KTriePatternCount(obj); }
+
+    int search(const uint8_t*, int, MpseMatch, void*, int*) override;
 };
+
+int LowmemMpse::search(const uint8_t* T, int n, MpseMatch match, void* context, int* current_state)
+{
+    Profile profile(lm_stats);  // cppcheck-suppress unreadVariable
+
+    lm_counts.searches++;
+    lm_counts.bytes += n;
+
+    *current_state = 0;
+    int found =  KTrieSearch(obj, T, n, match, context);
+
+    lm_counts.matches += found;
+    return found;
+}
 
 //-------------------------------------------------------------------------
 // api
 //-------------------------------------------------------------------------
+
+static Module* mod_ctor()
+{
+    return new LowmemModule;
+}
+
+static void mod_dtor(Module* p)
+{
+    delete p;
+}
 
 static Mpse* lm_ctor(const SnortConfig*, class Module*, const MpseAgent* agent)
 {
@@ -115,10 +175,10 @@ static const MpseApi lm_api =
         0,
         API_RESERVED,
         API_OPTIONS,
-        "lowmem",
-        "Keyword Trie (low memory, moderate performance) MPSE",
-        nullptr,
-        nullptr
+        MOD_NAME,
+        MOD_HELP,
+        mod_ctor,
+        mod_dtor
     },
     MPSE_BASE,
     nullptr,
@@ -132,5 +192,9 @@ static const MpseApi lm_api =
     nullptr
 };
 
-const BaseApi* se_lowmem = &lm_api.base;
+SO_PUBLIC const snort::BaseApi* snort_plugins[] =
+{
+    &lm_api.base,
+    nullptr
+};
 

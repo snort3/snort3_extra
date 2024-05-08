@@ -22,8 +22,8 @@
 #include <iomanip>
 
 #include "flow/flow.h"
+#include "framework/pig_pen.h"
 #include "network_inspectors/appid/appid_api.h"
-#include "utils/stats.h"
 #include "utils/util.h"
 
 using namespace snort;
@@ -57,7 +57,7 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     if (!config.json_logging and ac_bits.test(APPID_RESET_BIT))
     {
         print_header(cli_ip_str, srv_ip_str, flow->client_port, flow->server_port,
-            flow->ip_proto, get_packet_number());
+            flow->ip_proto, PigPen::get_packet_number());
 
         ostringstream ss(" appid data is reset\n");
         if (!write_to_file(ss.str()))
@@ -68,7 +68,7 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 
     const AppIdSessionApi& api = appid_event.get_appid_session_api();
     AppId service = api.get_service_app_id();
-    PegCount packet_num = get_packet_number();
+    PegCount packet_num = PigPen::get_packet_number();
     uint32_t httpx_stream_index = 0;
     bool is_httpx = appid_event.get_is_httpx();
     if (is_httpx)

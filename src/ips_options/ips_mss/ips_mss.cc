@@ -163,7 +163,7 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static IpsOption* mss_ctor(Module* p, OptTreeNode*)
+static IpsOption* mss_ctor(Module* p, IpsInfo&)
 {
     MssModule* m = (MssModule*)p;
     return new TcpMssOption(m->data);

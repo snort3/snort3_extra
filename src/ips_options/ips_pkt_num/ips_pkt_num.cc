@@ -21,6 +21,7 @@
 #include "framework/decode_data.h"
 #include "framework/ips_option.h"
 #include "framework/module.h"
+#include "framework/pig_pen.h"
 #include "framework/range.h"
 #include "hash/hash_key_operations.h"
 #include "profiler/profiler.h"
@@ -78,7 +79,7 @@ IpsOption::EvalStatus PktNumOption::eval(Cursor&, Packet*)
 {
     Profile profile(pkt_num_perf_stats);    // cppcheck-suppress unreadVariable
 
-    if ( config.eval(get_packet_number()) )
+    if ( config.eval(PigPen::get_packet_number()) )
         return MATCH;
 
     return NO_MATCH;
@@ -142,7 +143,7 @@ static void mod_dtor(Module* m)
     delete m;
 }
 
-static IpsOption* pkt_num_ctor(Module* p, OptTreeNode*)
+static IpsOption* pkt_num_ctor(Module* p, IpsInfo&)
 {
     PktNumModule* m = (PktNumModule*)p;
     return new PktNumOption(m->data);

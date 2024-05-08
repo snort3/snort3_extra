@@ -29,7 +29,6 @@
 #include "framework/module.h"
 #include "profiler/memory_profiler_defs.h"
 #include "pub_sub/http_events.h"
-#include "utils/stats.h"
 
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/TestHarness.h>
