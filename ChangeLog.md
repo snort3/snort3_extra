@@ -1,3 +1,13 @@
+2024-05-08: 3.2.0.0
+
+* build: eliminate SO_PUBLIC THREAD_LOCALs
+* event: change IPS Event struct to class with private data
+* events: do not install event queue header
+* ips options: remove OptTreeNode from interface
+* lowmem: suppress bogus cppcheck warning
+* mpse: add modules for pegs and perf profiling; remove \_search
+* stats: stats.h is for internal use only, do not install
+
 2024-01-16: 3.1.78.0
 
 * copyright: update year to 2024
