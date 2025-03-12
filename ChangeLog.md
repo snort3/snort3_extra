@@ -1,3 +1,7 @@
+2025-03-11:3.7.1.0
+
+* copyright: update year to 2025
+
 2024-05-08: 3.2.0.0
 
 * build: eliminate SO_PUBLIC THREAD_LOCALs
