@@ -124,6 +124,7 @@ extern "C"
 {
     SO_PUBLIC ThirdPartyAppIdContextImpl* tp_appid_create_ctxt(ThirdPartyConfig&);
     SO_PUBLIC ThirdPartyAppIdSessionImpl* tp_appid_create_session(ThirdPartyAppIdContext&);
+    SO_PUBLIC int tp_appid_mp_init(ThirdPartyAppIdContext&);
     SO_PUBLIC int tp_appid_pfini();
     SO_PUBLIC int tp_appid_tfini();
 
@@ -135,6 +136,11 @@ extern "C"
     SO_PUBLIC ThirdPartyAppIdSessionImpl* tp_appid_create_session(ThirdPartyAppIdContext& ctxt)
     {
         return new ThirdPartyAppIdSessionImpl(ctxt);
+    }
+
+    SO_PUBLIC int tp_appid_mp_init(ThirdPartyAppIdContext&)
+    {
+        return 0;
     }
 
     SO_PUBLIC int tp_appid_pfini()
