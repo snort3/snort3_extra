@@ -1,4 +1,8 @@
-2025-03-11:3.7.1.0
+2025-05-05: 3.7.4.0
+
+* appid: multiprocess init for third party
+
+2025-03-11: 3.7.1.0
 
 * copyright: update year to 2025
 
