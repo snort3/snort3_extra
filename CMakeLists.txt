@@ -1,4 +1,4 @@
-cmake_minimum_required ( VERSION 3.4.3 )
+cmake_minimum_required ( VERSION 3.5 )
 project( extra CXX C )
 
 set (EXTRA_VERSION_MAJOR 1)
