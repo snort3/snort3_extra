@@ -1,3 +1,7 @@
+2025-05-26: 3.8.1.0
+
+* build: set CMake minimal version to 3.5
+
 2025-05-05: 3.7.4.0
 
 * appid: multiprocess init for third party
