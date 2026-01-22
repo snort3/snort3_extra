@@ -1,3 +1,7 @@
+2026-01-22: 3.11.0.0
+
+* inspectors: updated null_trace_logger based on multi-logging feature
+
 2025-05-26: 3.8.1.0
 
 * build: set CMake minimal version to 3.5
