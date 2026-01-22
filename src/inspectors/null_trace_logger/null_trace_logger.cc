@@ -18,11 +18,9 @@
 // null_trace_logger.cc author Oleksandr Serhiienko <oserhiie@cisco.com>
 //                      author Oleksii Shumeiko <oshumeik@cisco.com>
 
-#include "framework/decode_data.h"  // for PROTO_BIT__NONE
-#include "framework/inspector.h"
 #include "framework/module.h"
+#include "framework/tracer.h"
 #include "trace/trace_api.h"
-#include "trace/trace_logger.h"
 
 static const char* s_name = "null_trace_logger";
 static const char* s_help = "trace logger with a null printout";
@@ -30,54 +28,95 @@ static const char* s_help = "trace logger with a null printout";
 using namespace snort;
 
 //-------------------------------------------------------------------------
-// logger
+// Config Parameters
 //-------------------------------------------------------------------------
+static const Parameter s_params[] =
+{
+    { "enable", Parameter::PT_BOOL, nullptr, nullptr, "enable null trace logger" },
+    { nullptr,  Parameter::PT_MAX,  nullptr, nullptr, nullptr }
+};
 
-class NullTraceLogger : public TraceLogger
+struct NullTraceConfig
+{
+    bool enable = false;
+};
+
+class NullTrace;
+
+class NullTrace : public TraceLoggerPlug
 {
 public:
+    explicit NullTrace(const NullTraceConfig& cfg) : TraceLoggerPlug(s_name), config(cfg)
+    {
+        set_enabled(config.enable);
+    }
+
     void log(const char*, const char*, uint8_t, const char*, const Packet*) override
-    { }
+    {
+    }
+
+    void update_config(const NullTraceConfig& new_config)
+    {
+        config = new_config;
+        set_enabled(config.enable);
+    }
+
+private:
+    NullTraceConfig config;
 };
 
 //-------------------------------------------------------------------------
-// logger factory
+// Module
 //-------------------------------------------------------------------------
-
-class NullLoggerFactory : public TraceLoggerFactory
+class NullTraceModule : public Module
 {
 public:
-    NullLoggerFactory() = default;
-    NullLoggerFactory(const NullLoggerFactory&) = delete;
-    NullLoggerFactory& operator=(const NullLoggerFactory&) = delete;
+    NullTraceModule() : Module(s_name, s_help, s_params) { }
 
-    TraceLogger* instantiate() override
-    { return new NullTraceLogger(); }
-};
+    bool set(const char* name, Value& v, SnortConfig*) override
+    {
+        if (strcmp(name, "null_trace_logger.enable") == 0)
+        {
+            config.enable = v.get_bool();
+            
+            if (config.enable)
+                TraceApi::register_enabled_tracer("null_trace_logger");
+            else
+                TraceApi::unregister_tracer("null_trace_logger");
+        }
+        return true;
+    }
 
-//-------------------------------------------------------------------------
-// module
-//-------------------------------------------------------------------------
+    bool begin(const char* fqn, int, SnortConfig*) override
+    {
+        if (!strcmp(fqn, "null_trace_logger"))
+        {
+            config.enable = true;
+        }
+        return true;
+    }
 
-class NullLoggerModule : public Module
-{
-public:
-    NullLoggerModule() : Module(s_name, s_help) { }
+    bool end(const char* fqn, int, SnortConfig*) override
+    {
+        if (!strcmp(fqn, "null_trace_logger") && trace_logger_instance)
+        {
+            trace_logger_instance->update_config(config);
+        }
+        return true;
+    }
+
+    const NullTraceConfig& get_config() const
+    { return config; }
+
+    void register_instance(NullTrace* instance)
+    { trace_logger_instance = instance; }
 
     Usage get_usage() const override
     { return GLOBAL; }
-};
 
-//-------------------------------------------------------------------------
-// inspector
-//-------------------------------------------------------------------------
-
-class NullLoggerInspector : public Inspector
-{
-public:
-    void eval(Packet*) override { }
-    bool configure(SnortConfig* sc) override
-    { return TraceApi::override_logger_factory(sc, new NullLoggerFactory()); }
+private:
+    NullTraceConfig config;
+    NullTrace* trace_logger_instance = nullptr;
 };
 
 //-------------------------------------------------------------------------
@@ -85,23 +124,28 @@ public:
 //-------------------------------------------------------------------------
 
 static Module* mod_ctor()
-{ return new NullLoggerModule; }
+{ return new NullTraceModule; }
 
 static void mod_dtor(Module* m)
 { delete m; }
 
-static Inspector* ntl_ctor(Module*)
-{ return new NullLoggerInspector; }
+static TraceLoggerPlug* trace_ctor(Module* m, const std::string&)
+{
+    NullTraceModule* mod = static_cast<NullTraceModule*>(m);
+    NullTrace* logger = new NullTrace(mod->get_config());
+    mod->register_instance(logger);
+    return logger;
+}
 
-static void ntl_dtor(Inspector* p)
-{ delete p; }
+static void trace_dtor(TraceLoggerPlug* logger)
+{ delete logger; }
 
-static const InspectApi ntl_api
+static const TraceLogApi trace_api =
 {
     {
-        PT_INSPECTOR,
-        sizeof(InspectApi),
-        INSAPI_VERSION,
+        PT_TRACE,
+        sizeof(TraceLogApi),
+        TRACE_LOGAPI_VERSION,
         0,
         API_RESERVED,
         API_OPTIONS,
@@ -110,23 +154,20 @@ static const InspectApi ntl_api
         mod_ctor,
         mod_dtor
     },
-    IT_PASSIVE,
-    PROTO_BIT__NONE,
-    nullptr, // buffers
-    nullptr, // service
-    nullptr, // pinit
-    nullptr, // pterm
-    nullptr, // tinit,
-    nullptr, // tterm,
-    ntl_ctor,
-    ntl_dtor,
-    nullptr, // ssn
-    nullptr  // reset
+    TRACE_OUTPUT_TYPE_FLAG__TRACE,
+    trace_ctor,
+    trace_dtor
+};
+
+const BaseApi* null_trace_logger[] =
+{
+    &trace_api.base,
+    nullptr
 };
 
 SO_PUBLIC const BaseApi* snort_plugins[] =
 {
-    &ntl_api.base,
+    &trace_api.base,
     nullptr
 };
 
