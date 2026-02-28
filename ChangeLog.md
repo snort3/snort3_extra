@@ -1,3 +1,7 @@
+2026-02-26: 3.11.1.0
+
+* copyright: update copyright year to 2026
+
 2026-01-22: 3.11.0.0
 
 * inspectors: updated null_trace_logger based on multi-logging feature
