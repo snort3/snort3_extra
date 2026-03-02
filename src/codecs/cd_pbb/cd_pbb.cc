@@ -29,7 +29,7 @@
 using namespace snort;
 
 #define CD_PBB_NAME "pbb"
-#define CD_PBB_HELP "support for 802.1ah protocol"
+#define CD_PBB_HELP "support for 802.1ah provider backbone bridging protocol"
 
 #define ETHERTYPE_8021AH 0x88E7
 
