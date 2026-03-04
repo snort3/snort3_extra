@@ -1,3 +1,8 @@
+2026-03-03: 3.12.0.0
+
+* null_trace_logger: refactor
+* pbb: update help text
+
 2026-02-26: 3.11.1.0
 
 * copyright: update copyright year to 2026
