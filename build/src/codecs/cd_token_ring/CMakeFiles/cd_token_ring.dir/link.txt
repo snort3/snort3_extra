@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -shared  -o cd_token_ring.so CMakeFiles/cd_token_ring.dir/cd_token_ring.cc.o 
