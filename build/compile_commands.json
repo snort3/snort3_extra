@@ -1,0 +1,182 @@
+[
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_eapol",
+  "command": "/usr/bin/c++ -Dcd_eapol_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_eapol.dir/cd_eapol.cc.o -c /home/armin/snort3_extra/src/codecs/cd_eapol/cd_eapol.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_eapol/cd_eapol.cc",
+  "output": "src/codecs/cd_eapol/CMakeFiles/cd_eapol.dir/cd_eapol.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_linux_sll",
+  "command": "/usr/bin/c++ -Dcd_linux_sll_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_linux_sll.dir/cd_linux_sll.cc.o -c /home/armin/snort3_extra/src/codecs/cd_linux_sll/cd_linux_sll.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_linux_sll/cd_linux_sll.cc",
+  "output": "src/codecs/cd_linux_sll/CMakeFiles/cd_linux_sll.dir/cd_linux_sll.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_null",
+  "command": "/usr/bin/c++ -Dcd_null_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_null.dir/cd_null.cc.o -c /home/armin/snort3_extra/src/codecs/cd_null/cd_null.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_null/cd_null.cc",
+  "output": "src/codecs/cd_null/CMakeFiles/cd_null.dir/cd_null.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_pflog",
+  "command": "/usr/bin/c++ -Dcd_pflog_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_pflog.dir/cd_pflog.cc.o -c /home/armin/snort3_extra/src/codecs/cd_pflog/cd_pflog.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_pflog/cd_pflog.cc",
+  "output": "src/codecs/cd_pflog/CMakeFiles/cd_pflog.dir/cd_pflog.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_pbb",
+  "command": "/usr/bin/c++ -Dcd_pbb_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_pbb.dir/cd_pbb.cc.o -c /home/armin/snort3_extra/src/codecs/cd_pbb/cd_pbb.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_pbb/cd_pbb.cc",
+  "output": "src/codecs/cd_pbb/CMakeFiles/cd_pbb.dir/cd_pbb.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_ppp",
+  "command": "/usr/bin/c++ -Dcd_ppp_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_ppp.dir/cd_ppp.cc.o -c /home/armin/snort3_extra/src/codecs/cd_ppp/cd_ppp.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_ppp/cd_ppp.cc",
+  "output": "src/codecs/cd_ppp/CMakeFiles/cd_ppp.dir/cd_ppp.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_slip",
+  "command": "/usr/bin/c++ -Dcd_slip_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_slip.dir/cd_slip.cc.o -c /home/armin/snort3_extra/src/codecs/cd_slip/cd_slip.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_slip/cd_slip.cc",
+  "output": "src/codecs/cd_slip/CMakeFiles/cd_slip.dir/cd_slip.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_token_ring",
+  "command": "/usr/bin/c++ -Dcd_token_ring_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_token_ring.dir/cd_token_ring.cc.o -c /home/armin/snort3_extra/src/codecs/cd_token_ring/cd_token_ring.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_token_ring/cd_token_ring.cc",
+  "output": "src/codecs/cd_token_ring/CMakeFiles/cd_token_ring.dir/cd_token_ring.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/codecs/cd_wlan",
+  "command": "/usr/bin/c++ -Dcd_wlan_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cd_wlan.dir/cd_wlan.cc.o -c /home/armin/snort3_extra/src/codecs/cd_wlan/cd_wlan.cc",
+  "file": "/home/armin/snort3_extra/src/codecs/cd_wlan/cd_wlan.cc",
+  "output": "src/codecs/cd_wlan/CMakeFiles/cd_wlan.dir/cd_wlan.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/daqs/daq_socket",
+  "command": "/usr/bin/cc -Ddaq_socket_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=gnu99 -fPIC -o CMakeFiles/daq_socket.dir/daq_socket.c.o -c /home/armin/snort3_extra/src/daqs/daq_socket/daq_socket.c",
+  "file": "/home/armin/snort3_extra/src/daqs/daq_socket/daq_socket.c",
+  "output": "src/daqs/daq_socket/CMakeFiles/daq_socket.dir/daq_socket.c.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/appid_listener",
+  "command": "/usr/bin/c++ -Dappid_listener_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/appid_listener.dir/appid_listener.cc.o -c /home/armin/snort3_extra/src/inspectors/appid_listener/appid_listener.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/appid_listener/appid_listener.cc",
+  "output": "src/inspectors/appid_listener/CMakeFiles/appid_listener.dir/appid_listener.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/appid_listener",
+  "command": "/usr/bin/c++ -Dappid_listener_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/appid_listener.dir/appid_listener_event_handler.cc.o -c /home/armin/snort3_extra/src/inspectors/appid_listener/appid_listener_event_handler.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/appid_listener/appid_listener_event_handler.cc",
+  "output": "src/inspectors/appid_listener/CMakeFiles/appid_listener.dir/appid_listener_event_handler.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/data_log",
+  "command": "/usr/bin/c++ -Ddata_log_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/data_log.dir/data_log.cc.o -c /home/armin/snort3_extra/src/inspectors/data_log/data_log.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/data_log/data_log.cc",
+  "output": "src/inspectors/data_log/CMakeFiles/data_log.dir/data_log.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/domain_filter",
+  "command": "/usr/bin/c++ -Ddomain_filter_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/domain_filter.dir/domain_filter.cc.o -c /home/armin/snort3_extra/src/inspectors/domain_filter/domain_filter.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/domain_filter/domain_filter.cc",
+  "output": "src/inspectors/domain_filter/CMakeFiles/domain_filter.dir/domain_filter.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/dpx",
+  "command": "/usr/bin/c++ -Ddpx_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/dpx.dir/dpx.cc.o -c /home/armin/snort3_extra/src/inspectors/dpx/dpx.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/dpx/dpx.cc",
+  "output": "src/inspectors/dpx/CMakeFiles/dpx.dir/dpx.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/mem_test",
+  "command": "/usr/bin/c++ -Dmem_test_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/mem_test.dir/mem_test.cc.o -c /home/armin/snort3_extra/src/inspectors/mem_test/mem_test.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/mem_test/mem_test.cc",
+  "output": "src/inspectors/mem_test/CMakeFiles/mem_test.dir/mem_test.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/cpeos_test",
+  "command": "/usr/bin/c++ -Dcpeos_test_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/cpeos_test.dir/cpeos_test.cc.o -c /home/armin/snort3_extra/src/inspectors/cpeos_test/cpeos_test.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/cpeos_test/cpeos_test.cc",
+  "output": "src/inspectors/cpeos_test/CMakeFiles/cpeos_test.dir/cpeos_test.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/null_trace_logger",
+  "command": "/usr/bin/c++ -Dnull_trace_logger_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/null_trace_logger.dir/null_trace_logger.cc.o -c /home/armin/snort3_extra/src/inspectors/null_trace_logger/null_trace_logger.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/null_trace_logger/null_trace_logger.cc",
+  "output": "src/inspectors/null_trace_logger/CMakeFiles/null_trace_logger.dir/null_trace_logger.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/syscall_monitor",
+  "command": "/usr/bin/c++ -DBUILDING_SO -Dsyscall_monitor_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++17 -fPIC -o CMakeFiles/syscall_monitor.dir/syscall_monitor.cc.o -c /home/armin/snort3_extra/src/inspectors/syscall_monitor/syscall_monitor.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/syscall_monitor/syscall_monitor.cc",
+  "output": "src/inspectors/syscall_monitor/CMakeFiles/syscall_monitor.dir/syscall_monitor.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/inspectors/syscall_monitor",
+  "command": "/usr/bin/c++ -DBUILDING_SO -Dsyscall_monitor_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++17 -fPIC -o CMakeFiles/syscall_monitor.dir/syscall_monitor_module.cc.o -c /home/armin/snort3_extra/src/inspectors/syscall_monitor/syscall_monitor_module.cc",
+  "file": "/home/armin/snort3_extra/src/inspectors/syscall_monitor/syscall_monitor_module.cc",
+  "output": "src/inspectors/syscall_monitor/CMakeFiles/syscall_monitor.dir/syscall_monitor_module.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/ips_options/ips_pkt_num",
+  "command": "/usr/bin/c++ -Dips_pkt_num_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/ips_pkt_num.dir/ips_pkt_num.cc.o -c /home/armin/snort3_extra/src/ips_options/ips_pkt_num/ips_pkt_num.cc",
+  "file": "/home/armin/snort3_extra/src/ips_options/ips_pkt_num/ips_pkt_num.cc",
+  "output": "src/ips_options/ips_pkt_num/CMakeFiles/ips_pkt_num.dir/ips_pkt_num.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/ips_options/ips_mss",
+  "command": "/usr/bin/c++ -Dips_mss_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/ips_mss.dir/ips_mss.cc.o -c /home/armin/snort3_extra/src/ips_options/ips_mss/ips_mss.cc",
+  "file": "/home/armin/snort3_extra/src/ips_options/ips_mss/ips_mss.cc",
+  "output": "src/ips_options/ips_mss/CMakeFiles/ips_mss.dir/ips_mss.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/ips_options/ips_urg",
+  "command": "/usr/bin/c++ -Dips_urg_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/ips_urg.dir/ips_urg.cc.o -c /home/armin/snort3_extra/src/ips_options/ips_urg/ips_urg.cc",
+  "file": "/home/armin/snort3_extra/src/ips_options/ips_urg/ips_urg.cc",
+  "output": "src/ips_options/ips_urg/CMakeFiles/ips_urg.dir/ips_urg.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/ips_options/ips_wscale",
+  "command": "/usr/bin/c++ -Dips_wscale_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/ips_wscale.dir/ips_wscale.cc.o -c /home/armin/snort3_extra/src/ips_options/ips_wscale/ips_wscale.cc",
+  "file": "/home/armin/snort3_extra/src/ips_options/ips_wscale/ips_wscale.cc",
+  "output": "src/ips_options/ips_wscale/CMakeFiles/ips_wscale.dir/ips_wscale.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/loggers/alert_ex",
+  "command": "/usr/bin/c++ -Dalert_ex_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/alert_ex.dir/alert_ex.cc.o -c /home/armin/snort3_extra/src/loggers/alert_ex/alert_ex.cc",
+  "file": "/home/armin/snort3_extra/src/loggers/alert_ex/alert_ex.cc",
+  "output": "src/loggers/alert_ex/CMakeFiles/alert_ex.dir/alert_ex.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/loggers/log_null",
+  "command": "/usr/bin/c++ -Dlog_null_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/log_null.dir/log_null.cc.o -c /home/armin/snort3_extra/src/loggers/log_null/log_null.cc",
+  "file": "/home/armin/snort3_extra/src/loggers/log_null/log_null.cc",
+  "output": "src/loggers/log_null/CMakeFiles/log_null.dir/log_null.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/search_engines/lowmem",
+  "command": "/usr/bin/c++ -Dlowmem_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/lowmem.dir/lowmem.cc.o -c /home/armin/snort3_extra/src/search_engines/lowmem/lowmem.cc",
+  "file": "/home/armin/snort3_extra/src/search_engines/lowmem/lowmem.cc",
+  "output": "src/search_engines/lowmem/CMakeFiles/lowmem.dir/lowmem.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/search_engines/lowmem",
+  "command": "/usr/bin/c++ -Dlowmem_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/lowmem.dir/sfksearch.cc.o -c /home/armin/snort3_extra/src/search_engines/lowmem/sfksearch.cc",
+  "file": "/home/armin/snort3_extra/src/search_engines/lowmem/sfksearch.cc",
+  "output": "src/search_engines/lowmem/CMakeFiles/lowmem.dir/sfksearch.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/so_rules/sid_18758",
+  "command": "/usr/bin/c++ -Dsid_18758_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++14 -fPIC -o CMakeFiles/sid_18758.dir/sid_18758.cc.o -c /home/armin/snort3_extra/src/so_rules/sid_18758/sid_18758.cc",
+  "file": "/home/armin/snort3_extra/src/so_rules/sid_18758/sid_18758.cc",
+  "output": "src/so_rules/sid_18758/CMakeFiles/sid_18758.dir/sid_18758.cc.o"
+},
+{
+  "directory": "/home/armin/snort3_extra/build/src/tp_appid",
+  "command": "/usr/bin/c++ -Dtp_appid_example_EXPORTS -I/opt/snort3/include/snort    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -std=c++11 -fPIC -o CMakeFiles/tp_appid_example.dir/tp_appid_example.cc.o -c /home/armin/snort3_extra/src/tp_appid/tp_appid_example.cc",
+  "file": "/home/armin/snort3_extra/src/tp_appid/tp_appid_example.cc",
+  "output": "src/tp_appid/CMakeFiles/tp_appid_example.dir/tp_appid_example.cc.o"
+}
+]
