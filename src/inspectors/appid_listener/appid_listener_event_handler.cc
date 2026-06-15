@@ -122,7 +122,7 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
     char timebuf[TIMEBUF_SIZE];
     ts_print((const struct timeval*)&p->pkth->ts, timebuf, true);
     js.open();
-    js.put("session_num", api.get_session_id());
+    js.put("session_num", const_cast<AppIdSessionApi&>(api).get_session_id());
     js.put("pkt_time", timebuf);
     js.put("pkt_num", packet_num);
 
