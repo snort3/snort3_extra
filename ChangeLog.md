@@ -1,3 +1,7 @@
+2026-07-20: 3.12.3.0
+
+* appid: update get_session_id call
+
 2026-03-03: 3.12.0.0
 
 * null_trace_logger: refactor
