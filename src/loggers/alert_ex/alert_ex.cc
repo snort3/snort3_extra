@@ -114,7 +114,7 @@ static void mod_dtor(Module* m)
 
 static Logger* ex_ctor(Module* mod)
 {
-    return new ExLogger((ExModule*)mod);
+    return new ExLogger(static_cast<ExModule*>(mod));
 }
 
 static void ex_dtor(Logger* p)
@@ -144,4 +144,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &ex_api.base,
     nullptr
 };
-

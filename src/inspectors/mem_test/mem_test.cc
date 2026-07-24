@@ -150,14 +150,14 @@ void MemTest::end(Flow* f)
 
 void MemTest::add(Flow* f, size_t n)
 {
-    MemTestData* d = (MemTestData*)f->get_flow_data(MemTestData::data_id);
+    MemTestData* d = static_cast<MemTestData*>(f->get_flow_data(MemTestData::data_id));
     assert(d);
     d->allocate(n);
 }
 
 void MemTest::sub(Flow* f, size_t n)
 {
-    MemTestData* d = (MemTestData*)f->get_flow_data(MemTestData::data_id);
+    MemTestData* d = static_cast<MemTestData*>(f->get_flow_data(MemTestData::data_id));
     assert(d);
     d->deallocate(n);
 }
@@ -176,7 +176,7 @@ public:
     { return simple_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&mt_stats; }
+    { return reinterpret_cast<PegCount*>(&mt_stats); }
 
     Usage get_usage() const override
     { return INSPECT; }
@@ -238,4 +238,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &mt_api.base,
     nullptr
 };
-

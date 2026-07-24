@@ -120,7 +120,7 @@ public:
     { return simple_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&dpxstats; }
+    { return reinterpret_cast<PegCount*>(&dpxstats); }
 
     ProfileStats* get_profile() const override
     { return &dpxPerfStats; }
@@ -170,7 +170,7 @@ static void mod_dtor(Module* m)
 
 static Inspector* dpx_ctor(Module* m)
 {
-    DpxModule* mod = (DpxModule*)m;
+    DpxModule* mod = static_cast<DpxModule*>(m);
     return new Dpx(mod->port, mod->max);
 }
 
@@ -212,4 +212,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &dpx_api.base,
     nullptr
 };
-

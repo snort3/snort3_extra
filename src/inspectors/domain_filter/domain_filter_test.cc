@@ -168,7 +168,7 @@ TEST_GROUP(domain_filter_ins)
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
-        api = (InspectApi*)snort_plugins[0];    // cppcheck-suppress unreadVariable
+        api = reinterpret_cast<const InspectApi*>(snort_plugins[0]);    // cppcheck-suppress unreadVariable
     }
 };
 
@@ -233,7 +233,7 @@ TEST_GROUP(domain_filter_events)
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
-        api = (InspectApi*)snort_plugins[0];
+        api = reinterpret_cast<const InspectApi*>(snort_plugins[0]);
 
         mod = api->base.mod_ctor();
         CHECK(mod != nullptr);
@@ -311,4 +311,3 @@ int main(int argc, char** argv)
 {
     return CommandLineTestRunner::RunAllTests(argc, argv);
 }
-

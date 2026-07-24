@@ -76,7 +76,7 @@ public:
     { return lm_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&lm_counts; }
+    { return reinterpret_cast<PegCount*>(&lm_counts); }
 
     Usage get_usage() const override
     { return GLOBAL; }
@@ -197,4 +197,3 @@ SO_PUBLIC const snort::BaseApi* snort_plugins[] =
     &lm_api.base,
     nullptr
 };
-

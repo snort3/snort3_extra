@@ -77,7 +77,7 @@ void LogHandler::handle(DataEvent& e, Flow* f)
     TextLog_Print(tlog, "%s, %d, ", f->client_ip.ntop(ip_str), f->client_port);
     TextLog_Print(tlog, "%s, %d", f->server_ip.ntop(ip_str), f->server_port);
 
-    HttpEvent* he = (HttpEvent*)&e;
+    auto* he = static_cast<HttpEvent*>(&e);
     int32_t n;
     const uint8_t* s;
 
@@ -162,7 +162,7 @@ public:
     { return simple_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&dl_stats; }
+    { return reinterpret_cast<PegCount*>(&dl_stats); }
 
     bool begin(const char*, int, SnortConfig*) override;
     bool set(const char*, Value& v, SnortConfig*) override;
@@ -205,7 +205,7 @@ static void mod_dtor(Module* m)
 
 static Inspector* dl_ctor(Module* m)
 {
-    DataLogModule* mod = (DataLogModule*)m;
+    DataLogModule* mod = static_cast<DataLogModule*>(m);
     return new DataLog(mod->key, mod->limit);
 }
 
@@ -247,4 +247,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &dl_api.base,
     nullptr
 };
-

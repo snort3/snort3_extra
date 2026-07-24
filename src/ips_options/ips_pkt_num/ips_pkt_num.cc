@@ -71,7 +71,7 @@ bool PktNumOption::operator==(const IpsOption& ips) const
     if ( strcmp(s_name, ips.get_name()) )
         return false;
 
-    const PktNumOption& rhs = (const PktNumOption&)ips;
+    const PktNumOption& rhs = static_cast<const PktNumOption&>(ips);
     return ( config == rhs.config );
 }
 
@@ -145,7 +145,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* pkt_num_ctor(Module* p, IpsInfo&)
 {
-    PktNumModule* m = (PktNumModule*)p;
+    PktNumModule* m = static_cast<PktNumModule*>(p);
     return new PktNumOption(m->data);
 }
 
@@ -184,4 +184,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &pkt_num_api.base,
     nullptr
 };
-

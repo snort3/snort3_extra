@@ -139,7 +139,7 @@ static void mod_dtor(Module* m)
 static Inspector* al_ctor(Module* m)
 {
     assert(m);
-    return new AppIdListenerInspector((AppIdListenerModule&)*m);
+    return new AppIdListenerInspector(static_cast<AppIdListenerModule&>(*m));
 }
 
 static void al_dtor(Inspector* p)

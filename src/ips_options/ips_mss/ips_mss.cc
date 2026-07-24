@@ -72,7 +72,7 @@ bool TcpMssOption::operator==(const IpsOption& ips) const
     if ( strcmp(s_name, ips.get_name()) )
         return false;
 
-    const TcpMssOption& rhs = (const TcpMssOption&)ips;
+    const TcpMssOption& rhs = static_cast<const TcpMssOption&>(ips);
     return ( config == rhs.config );
 }
 
@@ -165,7 +165,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* mss_ctor(Module* p, IpsInfo&)
 {
-    MssModule* m = (MssModule*)p;
+    MssModule* m = static_cast<MssModule*>(p);
     return new TcpMssOption(m->data);
 }
 
@@ -204,4 +204,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &mss_api.base,
     nullptr
 };
-

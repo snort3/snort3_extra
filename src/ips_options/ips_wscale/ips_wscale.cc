@@ -72,7 +72,7 @@ bool TcpWscaleOption::operator==(const IpsOption& ips) const
     if ( strcmp(s_name, ips.get_name()) )
         return false;
 
-    const TcpWscaleOption& rhs = (const TcpWscaleOption&)ips;
+    const TcpWscaleOption& rhs = static_cast<const TcpWscaleOption&>(ips);
     return ( config == rhs.config );
 }
 
@@ -165,7 +165,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* wscale_ctor(Module* p, IpsInfo&)
 {
-    WscaleModule* m = (WscaleModule*)p;
+    WscaleModule* m = static_cast<WscaleModule*>(p);
     return new TcpWscaleOption(m->data);
 }
 
@@ -204,4 +204,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &wscale_api.base,
     nullptr
 };
-

@@ -103,7 +103,7 @@ public:
     { return s_pegs; }
 
     PegCount* get_counts() const override
-    { return (PegCount*)&s_counts; }
+    { return reinterpret_cast<PegCount*>(&s_counts); }
 
     unsigned get_gid() const override
     { return DF_GID; }
@@ -166,10 +166,10 @@ private:
 void HttpHandler::handle(DataEvent& de, Flow*)
 {
     Profile profile(s_prof);    // cppcheck-suppress unreadVariable
-    HttpEvent* he = (HttpEvent*)&de;
+    auto* he = static_cast<HttpEvent*>(&de);
 
     int32_t len;
-    const char* s = (const char*)he->get_uri_host(len);
+    const char* s = reinterpret_cast<const char*>(he->get_uri_host(len));
 
     if ( !s or len < 1 )
         return;
@@ -252,7 +252,7 @@ static void mod_dtor(Module* pm)
 
 static Inspector* df_ctor(Module* m)
 {
-    DomainFilterModule* pm = (DomainFilterModule*)m;
+    DomainFilterModule* pm = static_cast<DomainFilterModule*>(m);
     return new DomainFilter(pm->get_hosts());
 }
 
@@ -298,4 +298,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &df_api.base,
     nullptr
 };
-

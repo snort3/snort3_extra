@@ -71,7 +71,7 @@ bool TcpUrgOption::operator==(const IpsOption& ips) const
     if ( strcmp(s_name, ips.get_name()) )
         return false;
 
-    const TcpUrgOption& rhs = (const TcpUrgOption&)ips;
+    const TcpUrgOption& rhs = static_cast<const TcpUrgOption&>(ips);
     return ( config == rhs.config );
 }
 
@@ -148,7 +148,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* urg_ctor(Module* p, IpsInfo&)
 {
-    UrgModule* m = (UrgModule*)p;
+    UrgModule* m = static_cast<UrgModule*>(p);
     return new TcpUrgOption(m->data);
 }
 
@@ -187,4 +187,3 @@ SO_PUBLIC const BaseApi* snort_plugins[] =
     &urg_api.base,
     nullptr
 };
-
