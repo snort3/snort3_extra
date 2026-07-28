@@ -94,6 +94,6 @@ unsigned int KTrieMemUsed();
 void KTrieInitMemUsed();
 
 void KTrieDelete(KTRIE_STRUCT*);
-int KTriePatternCount(KTRIE_STRUCT*);
+int KTriePatternCount(const KTRIE_STRUCT*);
 
 #endif

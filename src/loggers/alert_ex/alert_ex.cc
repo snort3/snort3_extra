@@ -78,7 +78,7 @@ bool ExModule::begin(const char*, int, SnortConfig*)
 class ExLogger : public Logger
 {
 public:
-    ExLogger(ExModule* m)
+    ExLogger(const ExModule* m)
     { upper = m->upper; }
 
     void alert(Packet*, const char* msg, const Event&) override;

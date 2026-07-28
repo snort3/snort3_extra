@@ -120,7 +120,7 @@ KTRIE_STRUCT* KTrieNew(int method, const MpseAgent* agent)
     return ts;
 }
 
-int KTriePatternCount(KTRIE_STRUCT* k)
+int KTriePatternCount(const KTRIE_STRUCT* k)
 {
     return k->npats;
 }

@@ -111,8 +111,8 @@ public:
 private:
     void begin(Flow*, size_t);
     void end(Flow*);
-    void add(Flow*, size_t);
-    void sub(Flow*, size_t);
+    void add(const Flow*, size_t);
+    void sub(const Flow*, size_t);
 };
 
 // command format is <op><uint>\0
@@ -148,14 +148,14 @@ void MemTest::end(Flow* f)
     f->free_flow_data(MemTestData::data_id);
 }
 
-void MemTest::add(Flow* f, size_t n)
+void MemTest::add(const Flow* f, size_t n)
 {
     MemTestData* d = static_cast<MemTestData*>(f->get_flow_data(MemTestData::data_id));
     assert(d);
     d->allocate(n);
 }
 
-void MemTest::sub(Flow* f, size_t n)
+void MemTest::sub(const Flow* f, size_t n)
 {
     MemTestData* d = static_cast<MemTestData*>(f->get_flow_data(MemTestData::data_id));
     assert(d);
