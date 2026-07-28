@@ -667,9 +667,10 @@ static int socket_daq_interrupt(void* handle)
     return DAQ_SUCCESS;
 }
 
+// cppcheck-suppress constParameterCallback
 static int socket_daq_get_stats(void* handle, DAQ_Stats_t* stats)
 {
-    SocketContext* socket_context = (SocketContext*) handle;
+    const SocketContext* socket_context = (const SocketContext*) handle;
     *stats = socket_context->stats;
     return DAQ_SUCCESS;
 }
@@ -680,9 +681,10 @@ static void socket_daq_reset_stats(void* handle)
     memset(&socket_context->stats, 0, sizeof(socket_context->stats));
 }
 
+// cppcheck-suppress constParameterCallback
 static int socket_daq_get_snaplen(void* handle)
 {
-    SocketContext* socket_context = (SocketContext*) handle;
+    const SocketContext* socket_context = (const SocketContext*) handle;
     return socket_context->snaplen;
 }
 

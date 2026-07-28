@@ -170,7 +170,7 @@ static void mod_dtor(Module* m)
 
 static Inspector* dpx_ctor(Module* m)
 {
-    DpxModule* mod = static_cast<DpxModule*>(m);
+    const DpxModule* mod = static_cast<DpxModule*>(m);
     return new Dpx(mod->port, mod->max);
 }
 

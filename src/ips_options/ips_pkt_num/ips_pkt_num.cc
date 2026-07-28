@@ -145,7 +145,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* pkt_num_ctor(Module* p, IpsInfo&)
 {
-    PktNumModule* m = static_cast<PktNumModule*>(p);
+    const PktNumModule* m = static_cast<PktNumModule*>(p);
     return new PktNumOption(m->data);
 }
 

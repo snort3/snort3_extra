@@ -226,6 +226,7 @@ TEST(domain_filter_ins, basic)
 TEST_GROUP(domain_filter_events)
 {
     const InspectApi* api;
+    // cppcheck-suppress constVariablePointer
     Inspector* ins; // cppcheck-suppress variableScope
     Module* mod;    // cppcheck-suppress variableScope
 

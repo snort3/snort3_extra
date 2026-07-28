@@ -259,7 +259,7 @@ static int KTrieInsert(KTRIE_STRUCT* ts, KTRIEPATTERN* px)
 {
     int type = 0;
     int n = px->n;
-    uint8_t* P = px->P;
+    const uint8_t* P = px->P;
     KTRIENODE* root;
 
     /* Make sure we at least have a root character for the tree */
@@ -530,10 +530,6 @@ int KTrieCompile(snort::SnortConfig* sc, KTRIE_STRUCT* ts)
     return 0;
 }
 
-void sfksearch_print_qinfo()
-{
-}
-
 /*
 *   Search - Algorithm
 *
@@ -638,7 +634,7 @@ static inline int KTrieSearchBC(
     const uint8_t* Tend;
     const uint8_t* T, * bT;
     int nfound  = 0;
-    short* bcShift = (short*)ks->bcShift;
+    const unsigned short* bcShift = ks->bcShift;
     int bcSize  = ks->bcSize;
 
     ConvertCaseEx(Tnocase, Tx, n);
@@ -676,4 +672,3 @@ int KTrieSearch(
     else
         return KTrieSearchBC(ks, T, n, match, context);
 }
-

@@ -165,7 +165,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* mss_ctor(Module* p, IpsInfo&)
 {
-    MssModule* m = static_cast<MssModule*>(p);
+    const MssModule* m = static_cast<MssModule*>(p);
     return new TcpMssOption(m->data);
 }
 

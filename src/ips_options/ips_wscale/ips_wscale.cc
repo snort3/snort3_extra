@@ -165,7 +165,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* wscale_ctor(Module* p, IpsInfo&)
 {
-    WscaleModule* m = static_cast<WscaleModule*>(p);
+    const WscaleModule* m = static_cast<WscaleModule*>(p);
     return new TcpWscaleOption(m->data);
 }
 

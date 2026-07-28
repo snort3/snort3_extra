@@ -96,7 +96,4 @@ void KTrieInitMemUsed();
 void KTrieDelete(KTRIE_STRUCT*);
 int KTriePatternCount(KTRIE_STRUCT*);
 
-void sfksearch_print_qinfo();
-
 #endif
-

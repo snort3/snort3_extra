@@ -148,7 +148,7 @@ static void mod_dtor(Module* m)
 
 static IpsOption* urg_ctor(Module* p, IpsInfo&)
 {
-    UrgModule* m = static_cast<UrgModule*>(p);
+    const UrgModule* m = static_cast<UrgModule*>(p);
     return new TcpUrgOption(m->data);
 }
 

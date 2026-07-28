@@ -205,7 +205,7 @@ static void mod_dtor(Module* m)
 
 static Inspector* dl_ctor(Module* m)
 {
-    DataLogModule* mod = static_cast<DataLogModule*>(m);
+    const DataLogModule* mod = static_cast<DataLogModule*>(m);
     return new DataLog(mod->key, mod->limit);
 }
 

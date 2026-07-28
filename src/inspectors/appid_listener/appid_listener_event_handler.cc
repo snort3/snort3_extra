@@ -31,7 +31,7 @@ using namespace std;
 
 void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
 {
-    AppidEvent& appid_event = static_cast<AppidEvent&>(event);
+    const AppidEvent& appid_event = static_cast<const AppidEvent&>(event);
     const AppidChangeBits& ac_bits = appid_event.get_change_bitset();
 
     AppidChangeBits temp_ac_bits = ac_bits;
@@ -79,11 +79,10 @@ void AppIdListenerEventHandler::handle(DataEvent& event, Flow* flow)
     AppId misc = api.get_misc_app_id(httpx_stream_index);
     AppId referred = api.get_referred_app_id(httpx_stream_index);
 
-    const char *netbios_name = api.get_netbios_name();
-    const char *netbios_domain = api.get_netbios_domain();
-
     if (config.json_logging)
     {
+        const char* netbios_name = api.get_netbios_name();
+        const char* netbios_domain = api.get_netbios_domain();
         ostringstream ss;
         JsonStream js(ss);
         print_json_message(js, cli_ip_str, srv_ip_str, *flow, packet_num, api, service,
