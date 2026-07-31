@@ -111,6 +111,7 @@ public:
     DataLog(const std::string& s, uint64_t n) : key(s), limit(n) { }
 
     void show(const SnortConfig*) const override;
+    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
     void eval(Packet*) override { }
 
     bool configure(SnortConfig*) override

@@ -198,6 +198,7 @@ public:
 
     bool configure(SnortConfig*) override;
     void show(const SnortConfig*) const override;
+    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
     void eval(Packet*) override { }
 
 private:

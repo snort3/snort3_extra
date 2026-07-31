@@ -107,7 +107,7 @@ public:
     }
 
     int disable_flags(uint32_t) override { return 0; }
-    TPState get_state() override { return state; }
+    TPState get_state() override { return state; } // cppcheck-suppress uselessOverride ; interface contract
     void set_state(TPState s) override { state=s; }
     void clear_attr(TPSessionAttr attr) override { flags &= ~attr; }
     void set_attr(TPSessionAttr attr) override { flags |= attr; }

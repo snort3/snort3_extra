@@ -102,6 +102,7 @@ public:
     ~AppIdListenerInspector() override
     { delete config; }
 
+    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
     void eval(Packet*) override { }
 
     bool configure(SnortConfig* sc) override
