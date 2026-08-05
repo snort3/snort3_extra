@@ -148,21 +148,26 @@ void AppIdListenerEventHandler::print_json_message(JsonStream& js, const char* c
 
     const char* vendor;
     const char* version;
-    const AppIdServiceSubtype* subtype;
-    api.get_service_info(vendor, version, subtype);
+    const AppIdServiceSubtypeList* subtypes;
+    api.get_service_info(vendor, version, subtypes);
     js.open("service_info");
     js.put("ip", srv_ip_str);
     js.put("port", flow.server_port);
     js.put("version", version);
     js.put("vendor", vendor);
-    while (subtype)
+    if (subtypes)
     {
-        js.open("subtype");
-        js.put("service", subtype->service);
-        js.put("vendor", subtype->vendor);
-        js.put("version", subtype->version);
-        js.close();
-        subtype = subtype->next;
+        auto head = subtypes->head();
+        while (head)
+        {
+            const auto& subtype = head->data;
+            js.open("subtype");
+            js.put("service", subtype.service);
+            js.put("vendor", subtype.vendor);
+            js.put("version", subtype.version);
+            js.close();
+            head = head->next;
+        }
     }
     js.close();
 
