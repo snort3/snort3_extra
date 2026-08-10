@@ -553,8 +553,6 @@ static inline int KTriePrefixMatch(
 {
     KTRIENODE* root   = kt->root[ *T ];
     int nfound = 0;
-    KTRIEPATTERN* pk;
-    int index;
 
     /* Check if any keywords start with this character */
     if ( !root )
@@ -567,10 +565,10 @@ static inline int KTriePrefixMatch(
             T++;
             n--;
 
-            pk = root->pkeyword;
+            KTRIEPATTERN* pk = root->pkeyword;
             if (pk)
             {
-                index = (int)(T - bT);
+                const int index = (int)(T - bT);
                 nfound++;
                 if (match (pk->user, pk->rule_option_tree, index, context, pk->neg_list) > 0)
                 {
