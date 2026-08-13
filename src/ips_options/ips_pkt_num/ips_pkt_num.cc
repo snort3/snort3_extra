@@ -77,7 +77,7 @@ bool PktNumOption::operator==(const IpsOption& ips) const
 
 IpsOption::EvalStatus PktNumOption::eval(Cursor&, Packet*)
 {
-    Profile profile(pkt_num_perf_stats);    // cppcheck-suppress unreadVariable
+    Profile profile(pkt_num_perf_stats);
 
     if ( config.eval(PigPen::get_packet_number()) )
         return MATCH;

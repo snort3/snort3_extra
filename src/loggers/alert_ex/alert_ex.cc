@@ -51,10 +51,6 @@ public:
     bool set(const char*, Value&, SnortConfig*) override;
     bool begin(const char*, int, SnortConfig*) override;
 
-    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
-    Usage get_usage() const override
-    { return CONTEXT; }
-
 public:
     bool upper = false;
 };

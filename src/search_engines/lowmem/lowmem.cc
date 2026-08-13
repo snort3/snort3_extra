@@ -112,7 +112,7 @@ public:
 
 int LowmemMpse::search(const uint8_t* T, int n, MpseMatch match, void* context, int* current_state)
 {
-    Profile profile(lm_stats);  // cppcheck-suppress unreadVariable
+    Profile profile(lm_stats);
 
     lm_counts.searches++;
     lm_counts.bytes += n;

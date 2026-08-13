@@ -49,7 +49,7 @@ public:
     void handle(DataEvent& e, Flow*) override;
 
 private:
-    void log(const uint8_t*, int32_t);
+    static void log(const uint8_t*, int32_t);
     std::string key;
 };
 
@@ -111,8 +111,6 @@ public:
     DataLog(const std::string& s, uint64_t n) : key(s), limit(n) { }
 
     void show(const SnortConfig*) const override;
-    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
-    void eval(Packet*) override { }
 
     bool configure(SnortConfig*) override
     {

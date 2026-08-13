@@ -77,7 +77,7 @@ bool TcpUrgOption::operator==(const IpsOption& ips) const
 
 IpsOption::EvalStatus TcpUrgOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpUrgPerfStats);   // cppcheck-suppress unreadVariable
+    Profile profile(tcpUrgPerfStats);
 
     if ( p->ptrs.tcph and p->ptrs.tcph->are_flags_set(TH_URG) and
         config.eval(p->ptrs.tcph->urp()) )

@@ -50,11 +50,11 @@ private:
 
     void print_message(const char*, const char*, const snort::Flow&, PegCount,
         AppId, AppId, AppId, AppId, AppId);
-    void print_json_message(snort::JsonStream&, const char*, const char*, const snort::Flow&,
+    static void print_json_message(snort::JsonStream&, const char*, const char*, const snort::Flow&,
         PegCount, const snort::AppIdSessionApi&, AppId, AppId, AppId, AppId, AppId, bool, uint32_t,
         const snort::Packet*, const char*, const char*);
 
-    bool appid_changed(const AppidChangeBits& ac_bits) const
+    static bool appid_changed(const AppidChangeBits& ac_bits)
     {
         if (ac_bits.test(APPID_RESET_BIT) or ac_bits.test(APPID_SERVICE_BIT) or
             ac_bits.test(APPID_CLIENT_BIT) or ac_bits.test(APPID_MISC_BIT) or
@@ -64,7 +64,7 @@ private:
         return false;
     }
 
-    std::string get_proto_str(uint8_t ip_proto) const
+    static std::string get_proto_str(uint8_t ip_proto)
     {
         switch(ip_proto)
         {

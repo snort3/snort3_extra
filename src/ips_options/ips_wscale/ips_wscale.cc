@@ -96,7 +96,7 @@ static bool get_wscale(Packet* p, uint16_t& wscale)
 
 IpsOption::EvalStatus TcpWscaleOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpWscalePerfStats);    // cppcheck-suppress unreadVariable
+    Profile profile(tcpWscalePerfStats);
     uint16_t wscale;
 
     if ( get_wscale(p, wscale) and config.eval(wscale) )

@@ -165,7 +165,7 @@ private:
 
 void HttpHandler::handle(DataEvent& de, Flow*)
 {
-    Profile profile(s_prof);    // cppcheck-suppress unreadVariable
+    Profile profile(s_prof);
     auto* he = static_cast<HttpEvent*>(&de);
 
     int32_t len;
@@ -198,8 +198,6 @@ public:
 
     bool configure(SnortConfig*) override;
     void show(const SnortConfig*) const override;
-    // cppcheck-suppress uselessOverride ; override retained to document the plugin interface contract
-    void eval(Packet*) override { }
 
 private:
     DomainSet hosts;

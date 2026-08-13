@@ -109,10 +109,10 @@ public:
     void eval(Packet*) override;
 
 private:
-    void begin(Flow*, size_t);
-    void end(Flow*);
-    void add(const Flow*, size_t);
-    void sub(const Flow*, size_t);
+    static void begin(Flow*, size_t);
+    static void end(Flow*);
+    static void add(const Flow*, size_t);
+    static void sub(const Flow*, size_t);
 };
 
 // command format is <op><uint>\0

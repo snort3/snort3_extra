@@ -96,7 +96,7 @@ static bool get_mss(Packet* p, uint16_t& mss)
 
 IpsOption::EvalStatus TcpMssOption::eval(Cursor&, Packet* p)
 {
-    Profile profile(tcpMssPerfStats);   // cppcheck-suppress unreadVariable
+    Profile profile(tcpMssPerfStats);
     uint16_t mss;
 
     if ( get_mss(p, mss) and config.eval(mss) )
