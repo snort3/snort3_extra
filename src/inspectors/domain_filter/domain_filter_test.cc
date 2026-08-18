@@ -137,7 +137,7 @@ MemoryContext::~MemoryContext() { }
 
 TEST_GROUP(domain_filter_base)
 {
-    const BaseApi* api; // cppcheck-suppress variableScope
+    const BaseApi* api;
 
     void setup() override
     {
@@ -162,13 +162,13 @@ TEST(domain_filter_base, base)
 
 TEST_GROUP(domain_filter_ins)
 {
-    const InspectApi* api;  // cppcheck-suppress variableScope
+    const InspectApi* api;
 
     void setup() override
     {
         CHECK(snort_plugins[0] != nullptr);
         CHECK(snort_plugins[0]->type == PT_INSPECTOR);
-        api = reinterpret_cast<const InspectApi*>(snort_plugins[0]);    // cppcheck-suppress unreadVariable
+        api = reinterpret_cast<const InspectApi*>(snort_plugins[0]);
     }
 };
 
@@ -226,9 +226,8 @@ TEST(domain_filter_ins, basic)
 TEST_GROUP(domain_filter_events)
 {
     const InspectApi* api;
-    // cppcheck-suppress constVariablePointer
-    Inspector* ins; // cppcheck-suppress variableScope
-    Module* mod;    // cppcheck-suppress variableScope
+    Inspector* ins;
+    Module* mod;
 
     void setup() override
     {
