@@ -1,3 +1,14 @@
+2026-08-28: 3.12.5.0
+
+* appid: update get_service_info call
+* cppcheck: document intentional plugin overrides
+* cppcheck: make read-only parameters const
+* cppcheck: narrow lowmem search variable scopes
+* cppcheck: prepare extra plugins for 2.21
+* cppcheck: remove stale domain filter suppressions
+* cppcheck: make cppcheck local pointers const
+* plugins: clarify cppcheck type conversions
+
 2026-07-20: 3.12.3.0
 
 * appid: update get_session_id call
