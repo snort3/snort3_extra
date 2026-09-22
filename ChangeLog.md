@@ -1,3 +1,7 @@
+2026-09-21: 3.13.1.0
+
+* appid_listener: remove unnecessary timestamp cast
+
 2026-08-28: 3.12.5.0
 
 * appid: update get_service_info call
