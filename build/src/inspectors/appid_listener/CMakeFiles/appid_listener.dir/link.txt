@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -shared  -o appid_listener.so CMakeFiles/appid_listener.dir/appid_listener.cc.o CMakeFiles/appid_listener.dir/appid_listener_event_handler.cc.o 

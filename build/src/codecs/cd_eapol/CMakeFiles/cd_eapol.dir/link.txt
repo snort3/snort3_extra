@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -shared  -o cd_eapol.so CMakeFiles/cd_eapol.dir/cd_eapol.cc.o 
