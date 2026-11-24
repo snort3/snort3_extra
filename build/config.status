@@ -1,0 +1,2 @@
+# This is the command used to configure this build
+./configure_cmake.sh --prefix=/opt/snort3

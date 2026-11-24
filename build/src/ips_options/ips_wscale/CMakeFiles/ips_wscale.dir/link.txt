@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC    -I/usr/local/include  -I/usr/include/luajit-2.1  -I/usr/include        -I/usr/include  -I/usr/include    -I/usr/include/uuid     -DNDEBUG -g -ggdb   -O2 -g -DNDEBUG -shared  -o ips_wscale.so CMakeFiles/ips_wscale.dir/ips_wscale.cc.o 
