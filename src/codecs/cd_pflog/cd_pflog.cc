@@ -32,14 +32,15 @@ using namespace snort;
 namespace
 {
 /*
- * Snort supports 3 versions of the OpenBSD pflog header:
+ * Snort supports 5 versions of the pflog header:
  *
  * Pflog1_Hdr:  CVS = 1.3,   DLT_OLD_PFLOG = 17,  Length = 28
  * Pflog2_Hdr:  CVS = 1.8,   DLT_PFLOG     = 117, Length = 48
  * Pflog3_Hdr:  CVS = 1.12,  DLT_PFLOG     = 117, Length = 64
  * Pflog4_Hdr:  CVS = 1.172, DLT_PFLOG     = 117, Length = 100
+ * PflogFbsdHdr: v13.1,      DLT_PFLOG     = 117, Length = 72
  *
- * Since they have the same DLT, Pflog{2,3,4}Hdr are distinguished
+ * Since they have the same DLT, Pflog{2,3,4,Fbsd}Hdr are distinguished
  * by their actual length.  The minimum required length excludes
  * padding.
  */
@@ -128,6 +129,31 @@ struct Pflog4Hdr
 
 #define PFLOG4_HDRLEN sizeof(struct Pflog4Hdr)
 #define PFLOG4_HDRMIN sizeof(struct Pflog4Hdr)
+
+struct PflogFbsdHdr
+{
+    uint8_t  length;
+    uint8_t  af;
+    uint8_t  action;
+    uint8_t  reason;
+    char     ifname[IFNAMSIZ];
+    char     ruleset[PFLOG_RULELEN];
+    uint32_t rulenr;
+    uint32_t subrulenr;
+    uint32_t uid;
+    uint32_t pid;
+    uint32_t rule_uid;
+    uint32_t rule_pid;
+    uint8_t  dir;
+    uint8_t  pad[PFLOG_PADLEN];
+    uint32_t ridentifier;
+    uint8_t  reserve;
+    uint8_t  pad2[PFLOG_PADLEN];
+};
+
+#define PFLOGFBSD_HDRLEN sizeof(PflogFbsdhdr)
+#define PFLOGFBSD_HDRMIN (PFLOGFBSD_HDRLEN - PFLOG_PADLEN)
+
 } // namespace
 
 void PflogCodec::get_data_link_type(std::vector<int>& v)
@@ -172,6 +198,16 @@ bool PflogCodec::decode(const RawData& raw, CodecData& codec, DecodeData&)
         hlen = PFLOG4_HDRLEN;
         af = pf4h->af;
         padlen = sizeof(pf4h->pad);
+        break;
+    }
+    case PFLOGFBSD_HDRMIN:
+    {
+        const PflogFbsdHdr* const pffbsdh =
+            reinterpret_cast<const PflogFbsdHdr*>(raw.data);
+        pflen = pffbsdh->length;
+        hlen = PFLOGFBSD_HDRLEN;
+        af = pffbsdh->af;
+        padlen = sizeof(pffbsdh->pad);
         break;
     }
     default:
